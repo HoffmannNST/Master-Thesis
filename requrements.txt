@@ -1,1 +1,2 @@
-Required libraries:
+Required Python packages:
+1. pandas
