@@ -1,4 +1,5 @@
 # NicolasHoffmann
-Repozytorium do pracy magisterskiej
+Respository for Master Thesis.
 
-Zamieszczane będą tutaj postępy w pracy nad kodem.
+Python program for data analysis will be developed.
+Code update will be uploaded soon.
