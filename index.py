@@ -23,13 +23,13 @@ def import_file():
     global data
     global data_loaded
     while True:
-        #path = str(input('\nSpecify file path:\n'))
-        path = 'test.txt'
+        path = input('\nSpecify file path:\n')
+        #path = 'test.txt'
         if path in step_back:       # Back to MENU
             break
 
-        #decimal = str(input('\nSpecify decimal separator in the file:\n'))     # '.' or ','
-        decimal = ','
+        decimal = input('\nSpecify decimal separator in the file:\n')     # '.' or ','
+        #decimal = ','
         if decimal in step_back:    # Back to MENU
             break
 
