@@ -30,7 +30,7 @@ def choose_column(calc_set: str):
 
 # Operate on data in Calculator
 def calc_operate(calc_set: str, data, operation: str, column: int or str, number: float):
-    if calc_set == 'inedx':
+    if calc_set == 'index':
         result = data.iloc[:,[column]]
     else:
         result = data.loc[:,[column]]
