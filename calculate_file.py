@@ -8,7 +8,7 @@ import pandas as pd
 from read_file import import_file
 
 # Predefined settings
-calc_set = 'num'            # num or nam - working with columns numbers or names
+calc_set = 'index'          # working with columns indexes or names
 data_loaded = False         # no data is loaded at the beggining of program
 step_back = ['x','X']       # keywords to break current loop and go back to previous menu
 close_program = ['x','X']   # keywords to exit program from the MENU
@@ -17,7 +17,7 @@ data = pd.Series()
 # FUNCTIONS
 # Choose column to edit in the Calculator
 def choose_column(calc_set: str):
-    if calc_set == 'num':
+    if calc_set == 'index':
         while True:
             try:
                 chosen_column = input('\nChoose a column to edit: ')
@@ -33,7 +33,7 @@ def choose_column(calc_set: str):
 
 # Operate on data in Calculator
 def calc_operate(calc_set: str, data, operation: str, column: int or str, number: float):
-    if calc_set == 'num':
+    if calc_set == 'inedx':
         result = data.iloc[:,[column]]
     else:
         result = data.loc[:,[column]]
@@ -53,13 +53,13 @@ def calc_operate(calc_set: str, data, operation: str, column: int or str, number
 # Calculator settings
 def calculator_settings():
     while True:
-        calc_set = input('Do you want to work with column numbers or names (enter num or nam): ')
+        calc_set = input('Do you want to work with column indexes or names (enter i or n): ')
         if calc_set in step_back:   # Back to MENU
             break
-        elif calc_set == 'num':
-            return 'num'
-        elif calc_set == 'nam':
-            return 'nam'
+        elif calc_set == 'i':
+            return 'index'
+        elif calc_set == 'n':
+            return 'name'
 
 # Calulate
 def calculator(data_loaded, calc_set, data):
@@ -76,8 +76,8 @@ def calculator(data_loaded, calc_set, data):
             break
 
         elif menu_calc == '1':      # Edit column
+            edit_column = choose_column(calc_set)       # Select column to edit
             while True:
-                edit_column = choose_column(calc_set)   # Select column to edit
                 if edit_column in step_back:            # back to the Calculator menu
                     break
 
@@ -95,11 +95,11 @@ def calculator(data_loaded, calc_set, data):
                 if calc_number in step_back:
                             break
                 try:
-                    if calc_set == 'num':
+                    if calc_set == 'index':
                         print('\nDATA BEFORE\n', data.iloc[[0,1,2,3],[edit_column]])    #line for testing, to be deleted later
                         data.iloc[:,[edit_column]] = calc_operate(calc_set, data, calc_operation, edit_column, calc_number)
                         print('\nDATA AFTER\n', data.iloc[[0,1,2,3],[edit_column]])     #line for testing, to be deleted later
-                    elif calc_set == 'nam':
+                    elif calc_set == 'name':
                         print('\nDATA BEFORE\n', data.loc[[0,1,2,3],[edit_column]])     #line for testing, to be deleted later
                         data.loc[:,[edit_column]] = calc_operate(calc_set, data, calc_operation, edit_column, calc_number)
                         print('\nDATA AFTER\n', data.loc[[0,1,2,3],[edit_column]])      #line for testing, to be deleted later
@@ -113,6 +113,9 @@ def calculator(data_loaded, calc_set, data):
 
         elif menu_calc == '3':      # Settings
             calc_set = calculator_settings()
+
+        else:
+            input('\nIncorrect option!\nPress ENTER to continue...')
 
     return calc_set, data
         
