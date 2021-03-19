@@ -4,9 +4,6 @@
 # Import packages
 import pandas as pd
 
-# Import functions from additional files
-from read_file import import_file
-
 # Predefined settings
 calc_set = 'index'          # working with columns indexes or names
 data_loaded = False         # no data is loaded at the beggining of program
