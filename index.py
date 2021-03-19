@@ -11,7 +11,7 @@ from read_file import import_file
 from calculate_file import calculator
 
 # Predefined settings
-calc_set = 'num'            # num or nam - working with columns numbers or names
+calc_set = 'index'          # working with columns indexes or names
 data_loaded = False         # no data is loaded at the beggining of program
 step_back = ['x','X']       # keywords to break current loop and go back to previous menu
 close_program = ['x','X']   # keywords to exit program from the MENU
