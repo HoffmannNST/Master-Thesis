@@ -3,37 +3,44 @@
 
 # Import packages
 import pandas as pd
+import pathlib
 
 # Predefined settings
 data_loaded = False         # no data is loaded at the beggining of program
-step_back = ['x','X']       # keywords to break current loop and go back to previous menu
 
 # FUNCTIONS
-# Read file
-def get_file(path: str, coma: str):
-    imported_file = pd.read_csv(path, sep ='\t', decimal =coma, header =0)
-    return imported_file
-
 # Import file
 def import_file():
     global data
     while True:
-        #path = input('\nSpecify file path:\n')
-        path = 'test.txt'
-        if path in step_back:       # Back to MENU
-            break
+        #data_path = input('\nSpecify folder path (data_test_folder/Pomiar1):\n')
+        data_path = 'data_test_folder/Pomiar 1'
 
-        #decimal = input('\nSpecify decimal separator in the file:\n')     # '.' or ','
-        decimal = ','
-        if decimal in step_back:    # Back to MENU
-            break
+        files_path = pathlib.Path(data_path)
 
-        try:
-            data = get_file(path, decimal)
-            print('\n',data,'\n')
-            return True, data		# True for data_loaded
+        if files_path.exists() == True:
+            #coma = input('\nSpecify decimal separator in the files:\n')     # '.' or ','
+            coma = ','
 
-        except FileNotFoundError:
-            back = input('\nSpecified file does not exist or file path is incorrect!\nType X to exit to menu   or   press ENTER to continue...')
-            if back in step_back:   # Back to MENU
-                break
+            data_path1 = data_path+'/Grzanie/grzaniePomiar_Keithley2400.txt'
+            data_path2 = data_path+'/Grzanie/grzaniePomiar_Keithley2000.txt'
+            data_path3 = data_path+'/Chłodzenie/chlodzeniePomiar_Keithley2400.txt'
+            data_path4 = data_path+'/Chłodzenie/chlodzeniePomiar_Keithley2000.txt'
+
+            file_names = [data_path1, data_path2, data_path3, data_path4]
+            loaded_files=[]
+            data =[]
+
+            for i in file_names:
+                j = pathlib.Path(i) 
+                if j.exists() == True:
+                    data.append(pd.read_csv(i, sep ='\t', decimal =coma, header =0))
+                    loaded_files.append(i)
+
+            print('\nFiles loaded:')
+            for count, item in enumerate(loaded_files, 0):
+                print(count, item)
+            return data
+                    
+        else:
+            input('\nSpecified path does not exist!\nPress ENTER to continue...')
