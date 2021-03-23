@@ -2,4 +2,4 @@
 Respository for Master Thesis.
 
 Python program for data analysis will be developed.
-Code update will be uploaded soon.
+Data to analyze comes from my own LabView program that runs electrical tests in dependace of temperature.
