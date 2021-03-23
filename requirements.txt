@@ -1,2 +1,4 @@
 Required Python packages:
 1. pandas
+2. pathlib
+3. numpy
