@@ -20,14 +20,15 @@ def calculate(data, loaded_files):
         new_data['Ln(1/R)'] = np.log(1/new_data['Opor'])
 
         try:
-            p_step = float(input('Enter the step for the p parameter (i.e. 0.1): '))
-            #p_step = 0.1
+            #p_step = float(input('Enter the step for the p parameter (i.e. 0.1): '))
+            p_step = 0.1
         except:
             print('Invalid input!')
             p_step = 0.1
         
         for p in np.arange(0+p_step, 1+p_step, p_step):
-            new_data[str(round(p,3))] = 1/(new_data['Temperatura [K]']**p)
+            column_name = 'p = ' + str(round(p,3))
+            new_data[column_name] = 1/(new_data['Temperatura [K]']**p)
         print('\nData from file:\n%s\n\n%s' %(i,new_data))
         data[x] = new_data
 
