@@ -18,9 +18,9 @@ data, delimeter, coma, data_names = import_file()
 data, r2p = calculate(data, data_names)
 
 # Save file
-save_file(data, data_names, delimeter, coma)
+save_file(data, data_names, delimeter, coma, r2p)
 
 # Plot
-do_plot(r2p, data_names)
+do_plot(r2p, data_names, data)
 
 input('\n\nPRESS ENTER...')
