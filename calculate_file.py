@@ -52,4 +52,12 @@ def calculate(data, data_names):
 
     print('\nCalculated r^2(p):\n',r2p)
 
+    print('\nMax values of r^2(p):\n')
+    for i,j in enumerate(data_names):
+        find_max_p = r2p[j]
+        index_p = find_max_p.idxmax()
+        max_r2 = find_max_p[index_p]
+        max_p = r2p.iloc[0,index_p]
+        print('%s. max r^2 = %.3f for p = %.2f for data %s' % (i+1,max_r2,max_p,j))
+
     return data, r2p
