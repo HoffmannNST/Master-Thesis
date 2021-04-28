@@ -50,7 +50,7 @@ def calculate_arrhenius(data, data_names):
         r2p[i] = r2_scores
         data[x] = new_data
 
-    print('\nCalculated r^2(p):\n', r2p)
+    #print('\nCalculated r^2(p):\n', r2p)
 
     print('\nMax values of r^2(p):\n')
     for i,j in enumerate(data_names):
