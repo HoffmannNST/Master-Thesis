@@ -15,15 +15,15 @@ print('\nWelcome to program!')
 data, delimeter, coma, data_names = import_file()
 
 # Calculator Arrhenius
-data, r2p = calculate_arrhenius(data, data_names)
+data, r2_table = calculate_arrhenius(data, data_names)
 
 #Calculator DAE
-calculate_dae(data, data_names)
+#calculate_dae(data, data_names)
 
 # Save file
-save_file(data, data_names, delimeter, coma, r2p)
+save_file(data, data_names, delimeter, coma, r2_table)
 
 # Plot
-make_plot(r2p, data_names, data)
+make_plot(r2_table, data_names, data)
 
 input('\n\nPRESS ENTER...')
