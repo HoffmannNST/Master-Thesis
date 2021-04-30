@@ -7,25 +7,25 @@ import matplotlib.pyplot as plt
 
 # FUNCTIONS    
 # Calculate
-def do_plot(r2p, data_names, data):
-    X = r2p.iloc[:, 0]
+def make_plot(r2_table, data_names, data):
+    X = r2_table.iloc[:, 0]
 
     fig1, axsrp = plt.subplots(2,2)
     fig1.suptitle('r^2(p)')
-    axsrp[0,0].scatter(X, r2p.iloc[:, 1])
+    axsrp[0,0].scatter(X, r2_table.iloc[:, 1])
     axsrp[0,0].set_title(data_names[0])
     try:
-        axsrp[0,1].scatter(X, r2p.iloc[:, 2])
+        axsrp[0,1].scatter(X, r2_table.iloc[:, 2])
         axsrp[0,1].set_title(data_names[1])
     except:
         pass
     try:
-        axsrp[1,0].scatter(X, r2p.iloc[:, 3])
+        axsrp[1,0].scatter(X, r2_table.iloc[:, 3])
         axsrp[1,0].set_title(data_names[2])
     except:
         pass
     try:
-        axsrp[1,1].scatter(X, r2p.iloc[:, 4])
+        axsrp[1,1].scatter(X, r2_table.iloc[:, 4])
         axsrp[1,1].set_title(data_names[3])
     except:
         pass
