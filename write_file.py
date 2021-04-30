@@ -7,13 +7,13 @@ import pathlib
 
 # FUNCTIONS
 # Import file
-def save_file(data, data_names, delimeter :str, coma :str, r2p):
+def save_file(data, data_names, delimeter :str, coma :str, r2_table):
     x = -1
     saved_files = []
     
     pathlib.Path('Results/').mkdir(parents=True, exist_ok=True)
 
-    r2p.to_csv('Results/r2p.txt', index=False, sep =delimeter, decimal =coma)
+    r2_table.to_csv('Results/r2p.txt', index=False, sep =delimeter, decimal =coma)
     saved_files.append('Results/r2p.txt')
 
     for i in data_names:
