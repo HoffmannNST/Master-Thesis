@@ -18,7 +18,7 @@ data, delimeter, coma, data_names = import_file()
 data, r2_table = calculate_arrhenius(data, data_names)
 
 #Calculator DAE
-#calculate_dae(data, data_names)
+calculate_dae(data, data_names)
 
 # Save file
 save_file(data, data_names, delimeter, coma, r2_table)
@@ -26,4 +26,4 @@ save_file(data, data_names, delimeter, coma, r2_table)
 # Plot
 make_plot(r2_table, data_names, data)
 
-input('\n\nPRESS ENTER...')
+input('\n\nPRESS ENTER TO EXIT...')
