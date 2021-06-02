@@ -5,13 +5,14 @@
 import pandas as pd
 import numpy as np
 from math import exp
-from scipy import stats
+from scipy import stats, constants
 
 # Predefined settings
 data = []
+data_dae = []
 
 # FUNCTIONS    
-# Calculate
+# Calculate Arrhenius
 def calculate_arrhenius(data, data_names):
     x = -1
 
@@ -27,8 +28,8 @@ def calculate_arrhenius(data, data_names):
         p_list.append(round(p,3))
 
     # Tables of calculated parameters
-    r2_table = pd.DataFrame(p_list, columns = ['p'])    # r2 is correlation coeaficient
-    T0_table = pd.DataFrame(p_list, columns = ['p'])    # T0 is characteristic temp. deriviated from slope of function
+    r2_table = pd.DataFrame(p_list, columns = ['p'])    # r2 is a correlation coeaficient
+    T0_table = pd.DataFrame(p_list, columns = ['p'])    # T0 is a characteristic temp. deriviated from slope of function
     R0_table = pd.DataFrame(p_list, columns = ['p'])    # R0 is a pre-exponential factor deriviated from intercept of function
 
     for i in data_names:
@@ -52,19 +53,17 @@ def calculate_arrhenius(data, data_names):
             del std_err
             r2_list.append(r_value**2)
             slope *= -1
-            slope **= 1/p
-            T0_list.append(slope)
-            intercept = exp(-intercept)
-            R0_list.append(intercept)
+            T0_list.append(slope**(1/p))
+            R0_list.append(exp(-intercept))
 
         r2_table[i] = r2_list
         T0_table[i] = T0_list
         R0_table[i] = R0_list
         data[x] = new_data
 
-    print('\nCalculated r^2(p):\n', r2_table)
-    print('\nCalculated T0 parameter a:\n', T0_table)
-    print('\nCalculated R0 parameter:\n', R0_table)
+    #print('\nCalculated r^2(p):\n', r2_table)
+    #print('\nCalculated T0 parameter:\n', T0_table)
+    #print('\nCalculated R0 parameter:\n', R0_table)
 
     print('\nMax values of r^2(p):')
     for i,j in enumerate(data_names):
@@ -77,5 +76,23 @@ def calculate_arrhenius(data, data_names):
 
     return data, r2_table
 
-def calculate_dae():
-    pass
+# Calculate Differential Activation Energy
+def calculate_dae(data, data_names):
+    data_dae = data
+    Kb = constants.value("Boltzmann constant in eV/K") # "Boltzmann constant" or "...in eV/K" or "...in Hz/K" or "...in inverse meter per kelvin"
+
+    x = -1
+    for i in data_names:
+        x += 1
+
+        temp_data = data_dae[x]
+        new_data = temp_data.loc[:,['Temperatura [K]', 'Opor']]
+        #new_data['Ln(R)'] = np.log(new_data['Opor'])
+        new_data['d(Ln(R))'] = (np.log(new_data['Opor'])).diff()
+        #new_data['(Kb*T)^(-1)'] = (new_data['Temperatura [K]']*Kb)
+        new_data['d(Kb*T)^(-1)'] = (new_data['Temperatura [K]']*Kb).diff()
+        new_data['DAE'] = new_data['d(Ln(R))']/new_data['d(Kb*T)^(-1)'] # ?????? Możliwe, ze można w jednej linijce, ale nwm czy nie lepiej zostawić kilka kolumn w DataFrame dla kontroli
+        
+        print("\n",i)
+        print(new_data)
+        data_dae[x] = new_data 
