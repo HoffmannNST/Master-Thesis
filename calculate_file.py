@@ -6,16 +6,16 @@ import pandas as pd
 import numpy as np
 from math import exp
 from scipy import stats, constants
+import matplotlib.pyplot as plt
 
 # Predefined settings
 data = []
+data_arr = []
 data_dae = []
 
 # FUNCTIONS    
-# Calculate Arrhenius
-def calculate_arrhenius(data, data_names):
-    x = -1
-
+# Set steps for p parameter in range 0 to 1
+def p_steps_F():
     try:
         #p_step = float(input('\nEnter the step for the p parameter (i.e. 0.1): '))
         p_step = 0.1
@@ -26,16 +26,27 @@ def calculate_arrhenius(data, data_names):
     p_list = []
     for p in np.arange(0+p_step, 1+p_step, p_step):
         p_list.append(round(p,3))
+    
+    return p_list, p_step
+
+# Calculate Arrhenius
+def calculate_arrhenius(data, data_names):
+    x = -1
+    data_arr = data
+
+    p_list, p_step = p_steps_F()
 
     # Tables of calculated parameters
-    r2_table = pd.DataFrame(p_list, columns = ['p'])    # r2 is a correlation coeaficient
-    T0_table = pd.DataFrame(p_list, columns = ['p'])    # T0 is a characteristic temp. deriviated from slope of function
-    R0_table = pd.DataFrame(p_list, columns = ['p'])    # R0 is a pre-exponential factor deriviated from intercept of function
+    r2_table_arr = pd.DataFrame(p_list, columns = ['p'])    # r2 is a correlation coeficient
+    T0_table_arr = pd.DataFrame(p_list, columns = ['p'])    # T0 is a characteristic temp. deriviated from slope of function
+    R0_table_arr = pd.DataFrame(p_list, columns = ['p'])    # R0 is a pre-exponential factor deriviated from intercept of function
+
 
     for i in data_names:
         x += 1
+        data_arr = data
 
-        temp_data = data[x]
+        temp_data = data_arr[x]
         new_data = temp_data.loc[:,['Temperatura [K]', 'Opor']]
         new_data['Ln(1/R)'] = np.log(1/new_data['Opor'])
         
@@ -45,7 +56,7 @@ def calculate_arrhenius(data, data_names):
         R0_list = []
 
         for p in np.arange(0+p_step, 1+p_step, p_step):
-            column_p_name = '1/T^(' + str(round(p,3)) + ')'
+            column_p_name = 'p = ' + str(round(p,3))
             new_data[column_p_name] = 1/(new_data['Temperatura [K]']**p)
             X = new_data[column_p_name]
             slope, intercept, r_value, p_value, std_err = stats.linregress(X, Y)
@@ -56,30 +67,33 @@ def calculate_arrhenius(data, data_names):
             T0_list.append(slope**(1/p))
             R0_list.append(exp(-intercept))
 
-        r2_table[i] = r2_list
-        T0_table[i] = T0_list
-        R0_table[i] = R0_list
-        data[x] = new_data
+        r2_table_arr[i] = r2_list
+        T0_table_arr[i] = T0_list
+        R0_table_arr[i] = R0_list
+        data_arr[x] = new_data
 
-    #print('\nCalculated r^2(p):\n', r2_table)
-    #print('\nCalculated T0 parameter:\n', T0_table)
-    #print('\nCalculated R0 parameter:\n', R0_table)
+    #print('\nCalculated r^2(p):\n', r2_table, '\n\nCalculated T0 parameter:\n', T0_table, '\n\nCalculated R0 parameter:\n', R0_table)
 
     print('\nMax values of r^2(p):')
     for i,j in enumerate(data_names):
-        index_p = r2_table[j].idxmax()
-        max_r2 = r2_table.iloc[index_p,i+1]
-        param_p = r2_table.iloc[index_p,0]
-        param_T0 = T0_table.iloc[index_p,i+1]
-        param_R0 = R0_table.iloc[index_p,i+1]
+        index_p = r2_table_arr[j].idxmax()
+        max_r2 = r2_table_arr.iloc[index_p,i+1]
+        param_p = r2_table_arr.iloc[index_p,0]
+        param_T0 = T0_table_arr.iloc[index_p,i+1]
+        param_R0 = R0_table_arr.iloc[index_p,i+1]
         print('%s. max r^2 = %.3f for p = %.2f, parameters T0 = %.2f, R0 = %.2f, for data %s' % (i+1,max_r2,param_p,param_T0,param_R0,j))
 
-    return data, r2_table
+    return data_arr, r2_table_arr, p_list, p_step
 
-# Calculate Differential Activation Energy
-def calculate_dae(data, data_names):
+
+# Calculate Differential Activation Energy (DAE)
+def calculate_dae(data, data_names, p_list, p_step):
     data_dae = data
-    Kb = constants.value("Boltzmann constant in eV/K") # "Boltzmann constant" or "...in eV/K" or "...in Hz/K" or "...in inverse meter per kelvin"
+    Kb = constants.value('Boltzmann constant in eV/K') # 'Boltzmann constant' or '...in eV/K' or '...in Hz/K' or '...in inverse meter per kelvin'
+
+    # Tables of calculated parameters
+    r2_table_dae = pd.DataFrame(p_list, columns = ['p'])    # r2 is a correlation coeficient
+    #T0_table_dae = pd.DataFrame(p_list, columns = ['p'])    # T0 is a characteristic temp. deriviated from slope of function
 
     x = -1
     for i in data_names:
@@ -87,12 +101,50 @@ def calculate_dae(data, data_names):
 
         temp_data = data_dae[x]
         new_data = temp_data.loc[:,['Temperatura [K]', 'Opor']]
-        #new_data['Ln(R)'] = np.log(new_data['Opor'])
-        new_data['d(Ln(R))'] = (np.log(new_data['Opor'])).diff()
-        #new_data['(Kb*T)^(-1)'] = (new_data['Temperatura [K]']*Kb)
-        new_data['d(Kb*T)^(-1)'] = (new_data['Temperatura [K]']*Kb).diff()
-        new_data['DAE'] = new_data['d(Ln(R))']/new_data['d(Kb*T)^(-1)'] # ?????? Możliwe, ze można w jednej linijce, ale nwm czy nie lepiej zostawić kilka kolumn w DataFrame dla kontroli
+        new_data['d(Ln(R))'] = (np.log(temp_data['Opor'])).diff()
+        new_data['d(Kb*T)^(-1)'] = (temp_data['Temperatura [K]']*Kb).diff()
+        new_data['DAE'] = new_data['d(Ln(R))']/new_data['d(Kb*T)^(-1)']
+        new_data = new_data.drop([0], axis=0)
+        new_data = new_data.drop(['Temperatura [K]', 'Opor'], axis = 1)
+
+        #new_data = temp_data.loc[:,['Temperatura [K]', 'Opor']]
+        #new_data['d(Ln(R))'] = np.diff(np.log(new_data['Opor']), append = 1)
+        #new_data['d(Kb*T)^(-1)'] = np.diff(new_data['Temperatura [K]']*Kb, append = 1)
+        #new_data['DAE'] = new_data['d(Ln(R))']/new_data['d(Kb*T)^(-1)'] #DAE = d(Ln(R)) / d(Kb*T)^(-1)
         
-        print("\n",i)
-        print(new_data)
+        #print('\n',i)
+        #print(new_data)
         data_dae[x] = new_data 
+
+        Y = new_data['DAE']
+        r2_list = []
+        # ???????? T0_list = []
+        # ???????? R0_list = []
+
+        for p in np.arange(0+p_step, 1+p_step, p_step):
+            column_p_name = 'p = ' + str(round(p,3))
+            new_data[column_p_name] = (temp_data['Temperatura [K]']**(1-p))
+            X = new_data[column_p_name]
+            slope, intercept, r_value, p_value, std_err=stats.linregress(X, Y)
+            del p_value
+            del std_err
+            del slope
+            del intercept
+            print(r_value)
+            r2_list.append(r_value**2)
+            # ???????? slope *= -1
+            # ???????? T0_list.append(slope**(1/p))
+            # ???????? R0_list.append(exp(-intercept)
+            # ^^^^ MOŻE TO DO FUNKCJI ^^^^
+
+        r2_table_dae[i] = r2_list
+        #T0_table_dae[i] = T0_list
+        #R0_table_dae[i] = R0_list
+        data_dae[x] = new_data
+
+    print('\nCalculated r^2(p) DAE:\n', r2_table_dae)
+    print('\n',new_data)
+
+    #return data_dae, r2_table_dae 
+
+    # WYMIENIC NAZWY W ARR Z LIST. NA LIST_ARR ITD.
