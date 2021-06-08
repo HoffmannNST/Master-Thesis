@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # Import packages
-import pandas as pd
+import pandas as pd # ???????czy potrzebne?????
 import pathlib
 
 # FUNCTIONS
 # Import file
-def save_file(data, data_names, delimeter :str, coma :str, r2_table):
+def save_file(data_arr, data_names, delimeter :str, coma :str, r2_table):
     x = -1
     saved_files = []
     
@@ -18,7 +18,7 @@ def save_file(data, data_names, delimeter :str, coma :str, r2_table):
 
     for i in data_names:
         x += 1
-        data_temp = data[x]
+        data_temp = data_arr[x]
         data_path = 'Results/' + i + '.txt'     
         data_temp.to_csv(data_path, index=False, sep =delimeter, decimal =coma)
     
