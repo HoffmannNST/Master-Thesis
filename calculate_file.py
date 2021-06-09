@@ -6,7 +6,6 @@ import pandas as pd
 import numpy as np
 from math import exp
 from scipy import stats, constants
-import matplotlib.pyplot as plt
 
 # Predefined settings
 data = []
@@ -17,8 +16,8 @@ data_dae = []
 # Set steps for p parameter in range 0 to 1
 def p_steps_F():
     try:
-        #p_step = float(input('\nEnter the step for the p parameter (i.e. 0.1): '))
-        p_step = 0.1
+        p_step = float(input('\nEnter the step for the p parameter (i.e. 0.1): '))
+        #p_step = 0.1
     except:
         print('Invalid input!')
         p_step = 0.1
@@ -71,7 +70,6 @@ def calculate_arrhenius(data, data_names):
         T0_table_arr[i] = T0_list
         R0_table_arr[i] = R0_list
         data_arr[x] = new_data
-
     #print('\nCalculated r^2(p):\n', r2_table, '\n\nCalculated T0 parameter:\n', T0_table, '\n\nCalculated R0 parameter:\n', R0_table)
 
     print('\nMax values of r^2(p):')
@@ -91,22 +89,21 @@ def calculate_dae(data, data_names, p_list, p_step):
     data_dae = data
     Kb = constants.value('Boltzmann constant in eV/K') # 'Boltzmann constant' or '...in eV/K' or '...in Hz/K' or '...in inverse meter per kelvin'
 
-    # Tables of calculated parameters
-    r2_table_dae = pd.DataFrame(p_list, columns = ['p'])    # r2 is a correlation coeficient
-    #T0_table_dae = pd.DataFrame(p_list, columns = ['p'])    # T0 is a characteristic temp. deriviated from slope of function
-
     x = -1
     for i in data_names:
         x += 1
 
         temp_data = data_dae[x]
         new_data = temp_data.loc[:,['Temperatura [K]', 'Opor']]
-        new_data['d(Ln(R))'] = (np.log(temp_data['Opor'])).diff()
-        new_data['d(Kb*T)^(-1)'] = (temp_data['Temperatura [K]']*Kb).diff()
-        new_data['DAE'] = new_data['d(Ln(R))']/new_data['d(Kb*T)^(-1)']
-        new_data = new_data.drop([0], axis=0)
-        new_data = new_data.drop(['Temperatura [K]', 'Opor'], axis = 1)
+        new_data['(Ln(R))'] = (np.log(temp_data['Opor']))
+        new_data['d(Ln(R))'] = (new_data['(Ln(R))']).diff()
+        new_data['(Kb*T)^(-1)'] = (temp_data['Temperatura [K]']*Kb)**(-1)
+        new_data['d(Kb*T)^(-1)'] = (new_data['(Kb*T)^(-1)']).diff()
+        new_data['DAE'] = new_data['d(Ln(R))']/new_data['d(Kb*T)^(-1)'] #DAE = d(Ln(R)) / d(Kb*T)^(-1)
+        #new_data = new_data.drop([0], axis=0)
+        #new_data = new_data.drop(['Temperatura [K]', 'Opor'], axis = 1)
 
+        # Differential function using numpy
         #new_data = temp_data.loc[:,['Temperatura [K]', 'Opor']]
         #new_data['d(Ln(R))'] = np.diff(np.log(new_data['Opor']), append = 1)
         #new_data['d(Kb*T)^(-1)'] = np.diff(new_data['Temperatura [K]']*Kb, append = 1)
@@ -116,35 +113,7 @@ def calculate_dae(data, data_names, p_list, p_step):
         #print(new_data)
         data_dae[x] = new_data 
 
-        Y = new_data['DAE']
-        r2_list = []
-        # ???????? T0_list = []
-        # ???????? R0_list = []
+    #for i,j in enumerate(data_names):
+    #    print('\n',j,'\n',data_dae[i])
 
-        for p in np.arange(0+p_step, 1+p_step, p_step):
-            column_p_name = 'p = ' + str(round(p,3))
-            new_data[column_p_name] = (temp_data['Temperatura [K]']**(1-p))
-            X = new_data[column_p_name]
-            slope, intercept, r_value, p_value, std_err=stats.linregress(X, Y)
-            del p_value
-            del std_err
-            del slope
-            del intercept
-            print(r_value)
-            r2_list.append(r_value**2)
-            # ???????? slope *= -1
-            # ???????? T0_list.append(slope**(1/p))
-            # ???????? R0_list.append(exp(-intercept)
-            # ^^^^ MOŻE TO DO FUNKCJI ^^^^
-
-        r2_table_dae[i] = r2_list
-        #T0_table_dae[i] = T0_list
-        #R0_table_dae[i] = R0_list
-        data_dae[x] = new_data
-
-    print('\nCalculated r^2(p) DAE:\n', r2_table_dae)
-    print('\n',new_data)
-
-    #return data_dae, r2_table_dae 
-
-    # WYMIENIC NAZWY W ARR Z LIST. NA LIST_ARR ITD.
+    return data_dae
