@@ -16,8 +16,8 @@ data_dae = []
 # Set steps for p parameter in range 0 to 1
 def p_steps_F():
     try:
-        p_step = float(input('\nEnter the step for the p parameter (i.e. 0.1): '))
-        #p_step = 0.1
+        #p_step = float(input('\nEnter the step for the p parameter (i.e. 0.1): '))
+        p_step = 0.1
     except:
         print('Invalid input!')
         p_step = 0.1
@@ -54,6 +54,7 @@ def calculate_arrhenius(data, data_names):
         T0_list = []
         R0_list = []
 
+        # Linear regression - looking for best fitting p parameter
         for p in np.arange(0+p_step, 1+p_step, p_step):
             column_p_name = 'p = ' + str(round(p,3))
             new_data[column_p_name] = 1/(new_data['Temperatura [K]']**p)
@@ -100,17 +101,8 @@ def calculate_dae(data, data_names, p_list, p_step):
         new_data['(Kb*T)^(-1)'] = (temp_data['Temperatura [K]']*Kb)**(-1)
         new_data['d(Kb*T)^(-1)'] = (new_data['(Kb*T)^(-1)']).diff()
         new_data['DAE'] = new_data['d(Ln(R))']/new_data['d(Kb*T)^(-1)'] #DAE = d(Ln(R)) / d(Kb*T)^(-1)
-        #new_data = new_data.drop([0], axis=0)
-        #new_data = new_data.drop(['Temperatura [K]', 'Opor'], axis = 1)
-
-        # Differential function using numpy
-        #new_data = temp_data.loc[:,['Temperatura [K]', 'Opor']]
-        #new_data['d(Ln(R))'] = np.diff(np.log(new_data['Opor']), append = 1)
-        #new_data['d(Kb*T)^(-1)'] = np.diff(new_data['Temperatura [K]']*Kb, append = 1)
-        #new_data['DAE'] = new_data['d(Ln(R))']/new_data['d(Kb*T)^(-1)'] #DAE = d(Ln(R)) / d(Kb*T)^(-1)
-        
-        #print('\n',i)
-        #print(new_data)
+           
+        #print('\n',i,'\n',new_data)
         data_dae[x] = new_data 
 
     #for i,j in enumerate(data_names):
