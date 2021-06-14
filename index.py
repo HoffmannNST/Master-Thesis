@@ -8,7 +8,6 @@ from write_file import save_file
 from plot_file import make_plot
 
 # START XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-# Welcome message
 print('\nWelcome to program!')
 
 # Import file
