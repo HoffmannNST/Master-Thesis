@@ -70,19 +70,19 @@ def make_plot(r2_table, data_names, data, data_dae):
         x += 1
         temp_data = data_dae[x]
         if x == 0:
-            axsDAE[0,0].scatter(temp_data.iloc[:, 0], temp_data.iloc[:, 5])
+            axsDAE[0,0].scatter(temp_data.iloc[:, 0], temp_data.iloc[:, 6])
             axsDAE[0,0].set_title(i)
 
         if x == 1:
-            axsDAE[0,1].scatter(temp_data.iloc[:, 0], temp_data.iloc[:, 5])
+            axsDAE[0,1].scatter(temp_data.iloc[:, 0], temp_data.iloc[:, 6])
             axsDAE[0,1].set_title(i)
             
         if x == 2:
-            axsDAE[1,0].scatter(temp_data.iloc[:, 0], temp_data.iloc[:, 5])
+            axsDAE[1,0].scatter(temp_data.iloc[:, 0], temp_data.iloc[:, 6])
             axsDAE[1,0].set_title(i)
             
         if x == 3:
-            axsDAE[1,1].scatter(temp_data.iloc[:, 0], temp_data.iloc[:, 5])
+            axsDAE[1,1].scatter(temp_data.iloc[:, 0], temp_data.iloc[:, 6])
             axsDAE[1,1].set_title(i)
 
         for ax in axsDAE.flat:
@@ -90,5 +90,3 @@ def make_plot(r2_table, data_names, data, data_dae):
         fig3.tight_layout()
 
     plt.show()
-    
-    # ZMIENIĆ PLOTOWANIE NA UKŁADANIE WYKRESÓW PLIKAMI, A NIE TYPEM DANYCH !!!
