@@ -86,7 +86,7 @@ def make_plot(r2_table, data_names, data, data_dae):
             axsDAE[1,1].set_title(i)
 
         for ax in axsDAE.flat:
-            ax.set(xlabel='T [Kelvin]', ylabel='DAE [eV] (???)')
+            ax.set(xlabel='T [Kelvin]', ylabel='DAE [eV]')
         fig3.tight_layout()
 
     plt.show()
