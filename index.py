@@ -4,25 +4,29 @@
 # Import functions from additional files
 from read_file import import_file
 from calculate_file import calculate_arrhenius, calculate_dae
-from write_file import save_file
+from write_file import save_arrhenius, save_dae
 from plot_file import make_plot
 
 # START XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+# Welcome message
 print('\nWelcome to program!')
 
 # Import file
 data, delimeter, coma, data_names = import_file()
 
 # Calculator Arrhenius
-data_arr, r2_table, p_list, p_step = calculate_arrhenius(data, data_names)
+data_arrhenius, r2_table, p_list, p_step = calculate_arrhenius(data, data_names)
+
+# Save Arrhenius data
+saved_files = save_arrhenius(data_arrhenius, data_names, delimeter, coma, r2_table)
 
 #Calculator DAE
-data_dae = calculate_dae(data, data_names, p_list, p_step)
+data_dae = calculate_dae(data, data_names)
 
-# Save file
-save_file(data_arr, data_dae, data_names, delimeter, coma, r2_table)
+# Save DAE data
+saved_files = save_dae(data_dae, data_names, delimeter, coma, saved_files)
 
 # Plot
-make_plot(r2_table, data_names, data, data_dae)
+make_plot(data, data_names, data_dae, r2_table)
 
-input('\n\nPRESS ENTER TO EXIT...')
+input('\n\nPRESS ENTER TO EXIT...') # to be removed - helps in testing
