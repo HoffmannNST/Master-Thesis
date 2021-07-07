@@ -1,6 +1,9 @@
 # NicolasHoffmann
-Respository for Master Thesis.
+Respository for program for Master Thesis.
 
-Python program for data analysis will be developed.
+Program is devided into few seperate files. The main file that needs to be run is named "index.py". 
+Input data files needs to be placed into "Data" folder. The input data files should be additionaly placed in folders "Cooling" and "Heating" (To be changed soon).
+Program asks user for column separator and decimal sign in numbers in data files.
+Resulting data is put into "Results" folder.
+
 Data to analyze comes from my own LabView program that runs electrical tests in dependace of temperature.
-The goal is to develop a program that automates analysis with on-click math operations and plotting of calculated data.
