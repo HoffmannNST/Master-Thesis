@@ -62,7 +62,4 @@ def make_plot(data, data_names, data_dae, r2_table):
         plt.savefig(file_path, dpi=300)
         #plt.show()
         plt.close()
-
-
-    
-    # ZMIENIĆ PLOTOWANIE NA UKŁADANIE WYKRESÓW PLIKAMI, A NIE TYPEM DANYCH !!!
+        
