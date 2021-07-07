@@ -11,11 +11,18 @@ data_names = []
 data = []
 
 # FUNCTIONS
-# Import file
 def import_file():
+    """Function that imports data drom files in "Data" folder.
+
+    Returns:
+        data (list): list of DataFrames of raw data
+        delimeter (string): separator of columns in data file
+        coma (string): decimal sign in numbers
+        data_names (list): list of names of files imported to program
+    """
     while True:
-        #data_path = input('\nSpecify folder path (data_test_folder/Pomiar1):\n')
-        data_path = 'data_test_folder/Pomiar 1'
+        #data_path = 'Data' + input('\nSpecify folder path (data_test_folder/Pomiar1):\n')
+        data_path = 'Data'
 
         if pathlib.Path(data_path).exists() == True:
             #delimeter = input('\nSpecify columns separator (i.e. symbol [, ; .] or \t for tab):\n')     # /t - tab
@@ -23,10 +30,10 @@ def import_file():
             #coma = input('\nSpecify decimal separator in the files:\n')     # '.' or ','
             coma = ','
 
-            data_path1 = data_path+'/Grzanie/grzaniePomiar_Keithley2400.txt'
-            data_path2 = data_path+'/Grzanie/grzaniePomiar_Keithley2000.txt'
-            data_path3 = data_path+'/Chłodzenie/chlodzeniePomiar_Keithley2400.txt'
-            data_path4 = data_path+'/Chłodzenie/chlodzeniePomiar_Keithley2000.txt'
+            data_path1 = data_path+'/Heating/grzaniePomiar_Keithley2400.txt'
+            data_path2 = data_path+'/Heating/grzaniePomiar_Keithley2000.txt'
+            data_path3 = data_path+'/Cooling/chlodzeniePomiar_Keithley2400.txt'
+            data_path4 = data_path+'/Cooling/chlodzeniePomiar_Keithley2000.txt'
 
             file_names = [data_path1, data_path2, data_path3, data_path4]
             
