@@ -12,21 +12,21 @@ from plot_file import make_plot
 print('\nWelcome to program!')
 
 # Import file
-data, delimeter, coma, data_names = import_file()
+data, delimeter, coma, loaded_files = import_file()
 
 # Calculator Arrhenius
-data_arrhenius, r2_table, p_list, p_step = calculate_arrhenius(data, data_names)
+data_arrhenius, r2_table, p_list, p_step = calculate_arrhenius(data, loaded_files)
 
 # Save Arrhenius data
-saved_files = save_arrhenius(data_arrhenius, data_names, delimeter, coma, r2_table)
+saved_files = save_arrhenius(data_arrhenius, loaded_files, delimeter, coma, r2_table)
 
 #Calculator DAE
-data_dae = calculate_dae(data, data_names)
+data_dae = calculate_dae(data, loaded_files)
 
 # Save DAE data
-saved_files = save_dae(data_dae, data_names, delimeter, coma, saved_files)
+saved_files = save_dae(data_dae, loaded_files, delimeter, coma, saved_files)
 
 # Plot
-make_plot(data, data_names, data_dae, r2_table)
+make_plot(data, loaded_files, data_dae, r2_table)
 
 input('\n\nPRESS ENTER TO EXIT...') # to be removed - helps in testing
