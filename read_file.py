@@ -6,6 +6,7 @@ import pandas as pd
 import pathlib
 
 # Predefined settings
+directories = []
 loaded_files = []
 data_names = []
 data = []
@@ -18,53 +19,29 @@ def import_file():
         data (list): list of DataFrames of raw data
         delimeter (string): separator of columns in data file
         coma (string): decimal sign in numbers
-        data_names (list): list of names of files imported to program
+        loaded_files (list): list of names of files imported to program
     """
     while True:
-        #data_path = 'Data' + input('\nSpecify folder path (data_test_folder/Pomiar1):\n')
-        data_path = 'Data'
+        #directory = 'Data' + input('\nSpecify folder path: Data/')
+        directory = 'Data'
 
-        if pathlib.Path(data_path).exists() == True:
+        if pathlib.Path(directory).exists() == True:
+            directories_list = list(pathlib.Path(directory).glob('*.txt'))
+
             #delimeter = input('\nSpecify columns separator (i.e. symbol [, ; .] or \t for tab):\n')     # /t - tab
             delimeter = '\t'
             #coma = input('\nSpecify decimal separator in the files:\n')     # '.' or ','
             coma = ','
 
-            data_path1 = data_path+'/Heating/grzaniePomiar_Keithley2400.txt'
-            data_path2 = data_path+'/Heating/grzaniePomiar_Keithley2000.txt'
-            data_path3 = data_path+'/Cooling/chlodzeniePomiar_Keithley2400.txt'
-            data_path4 = data_path+'/Cooling/chlodzeniePomiar_Keithley2000.txt'
-
-            file_names = [data_path1, data_path2, data_path3, data_path4]
-            
-            for i in file_names:
+            for i in directories_list:
                 if pathlib.Path(i).exists() == True:
                     data.append(pd.read_csv(i, sep =delimeter, decimal =coma, header =0))
-                    loaded_files.append(i)
-
-            for i in loaded_files:
-                name = ''
-                if 'chlodzenie' in i:
-                    name += 'chlodzenie'
-                    if '2400' in i:
-                        name += '2400'
-                        data_names.append(name)
-                    elif '2000' in i:
-                        name += '2000'
-                        data_names.append(name)
-                elif 'grzanie' in i:
-                    name += 'grzanie'
-                    if '2400' in i:
-                        name += '2400'
-                        data_names.append(name)
-                    elif '2000' in i:
-                        name += '2000'
-                        data_names.append(name)
+                    loaded_files.append((i.name).split('.')[0])
 
             print('\nFiles loaded:')
             for count, item in enumerate(loaded_files, 0):
-                print(count, item)
-            return data, delimeter, coma, data_names
+                print(count, item + '.txt')
+            return data, delimeter, coma, loaded_files
                     
         else:
             input('\nSpecified path does not exist!\nPress ENTER to continue...')
