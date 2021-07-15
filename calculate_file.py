@@ -5,7 +5,9 @@
 import pandas as pd
 import numpy as np
 from math import exp
-from scipy import stats, constants
+from scipy import stats, constants, optimize
+
+import matplotlib.pyplot as plt
 
 # Predefined settings
 data = []
@@ -32,24 +34,36 @@ def p_steps_F():
         p_list.append(round(p,3))
     return p_list, p_step
 
+def DAE_fit(x, a, b):
+    """Function model for DAE nonlinear curve fitting with allometric function
 
-def calculate_arrhenius(data, loaded_files):
+    Args:
+        x (float): Variable that we try to fit
+        a (float): the directional factor 
+        b (float): exponent 
+
+    Returns:
+        float: value passed to scipy.optimize.curve_fit
+    """
+    return a*x**b
+
+def calculate_arrhenius(data, loaded_files, p_list, p_step):
     """Function for calculating parameters p with Arrhenius curves.
 
     Args:
         data (list): list of DataFrames of raw data
         loaded_files (list): list of names of files imported to program
+        p_list (list): list of p parameter within set range with set step
+        p_step (float): increment of p parameter
 
     Returns:
         data_arr (list): list of DataFrames with calculated data for each impoted file
         r2_table_arr (pandas.DataFrame): table of r^2 (cube of pearson coeficient) values
-        p_list (list): 
-        p_step (list):
+        p_list (list): list of p parameter within set range with set step
+        p_step (float): increment of p parameter
     """
     x = -1
-    data_arrhenius = data
-
-    p_list, p_step = p_steps_F()
+    data_arrhenius = list(data)
 
     # Tables of calculated parameters
     r2_table_arrhenius = pd.DataFrame(p_list, columns = ['p'])    # r2 is a correlation coeficient
@@ -100,15 +114,17 @@ def calculate_arrhenius(data, loaded_files):
     except KeyError:
         print('\n! ERROR: One or more data sets have different decimal separator then declared !')
 
-def calculate_dae(data, loaded_files):
+def calculate_dae(data, loaded_files, p_list, p_step):
     """Function for calculating Differential Activation Energy (DAE).
 
     Args:
         data (list): list of DataFrames of raw data
         loaded_files (list): list of names of files imported to program
+        p_list (list): list of p parameter within set range with set step
+        p_step (float): increment of p parameter
 
     Returns:
-        list: list of DataFrames with calculated data for each impoted file
+        data_dae (list): list of DataFrames with calculated data for each impoted file
     """
     x = -1
     data_dae = data
@@ -125,6 +141,32 @@ def calculate_dae(data, loaded_files):
             new_data['(Kb*T)^(-1)'] = (temporary_data['Temperatura [K]']*Kb)**(-1)
             new_data['d(Kb*T)^(-1)'] = (new_data['(Kb*T)^(-1)']).diff()
             new_data['DAE'] = new_data['d(Ln(R))']/new_data['d(Kb*T)^(-1)'] #DAE = d(Ln(R)) / d(Kb*T)^(-1)
+            
+            new_data.loc[0,'DAE'] = new_data.loc[1,'DAE']
+
+            for p in np.arange(0+p_step, 1+p_step, p_step):
+                column_p_name = 'p = ' + str(round(p,3))
+                new_data[column_p_name] = new_data['Temperatura [K]']**(1-p)
+                X = new_data['Temperatura [K]']
+                X2 = new_data[column_p_name]
+                Y = new_data['DAE']
+
+                # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html
+                # https://www.youtube.com/watch?v=4vryPwLtjIY
+
+                popt, pcov = optimize.curve_fit(DAE_fit, X2, Y, bounds=([-1,0], [np.inf, 3]))
+                plt.scatter(X, DAE_fit(X2, *popt),
+                        label='fit: a=%5.2f, b=%5.2f' % tuple(popt))
+
+            plt.plot(X, Kb*X, 'k-', label='Kb*T')
+            plt.plot(X, new_data['DAE'], 'r-', label='DAE(T)')
+            #plt.scatter(X, new_data[column_p_name])
+            plt.legend()
+            plt.title(i)
+            plt.xlabel('Temp [K]')
+            plt.ylabel('DAE [eV]')
+            plt.show()
+
             #new_data = new_data.drop([0], axis=0)
             #new_data = new_data.drop(['Temperatura [K]', 'Opor'], axis = 1)
 
@@ -138,8 +180,8 @@ def calculate_dae(data, loaded_files):
             #print(new_data)
             data_dae[x] = new_data 
 
-        #for i,j in enumerate(data_names):
-        #    print('\n',j,'\n',data_dae[i])
+        for i,j in enumerate(loaded_files):
+            print('\n',j,'\n',data_dae[i])
         return data_dae
 
     except KeyError:
