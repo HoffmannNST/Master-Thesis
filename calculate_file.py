@@ -154,9 +154,10 @@ def calculate_dae(data, loaded_files, p_list, p_step):
                 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html
                 # https://www.youtube.com/watch?v=4vryPwLtjIY
 
-                popt, pcov = optimize.curve_fit(DAE_fit, X2, Y, bounds=([-1,0], [np.inf, 3]))
-                plt.scatter(X, DAE_fit(X2, *popt),
-                        label='fit: a=%5.2f, b=%5.2f' % tuple(popt))
+                p_optimal, p_covariance = optimize.curve_fit(DAE_fit, X2, Y, bounds=([-1,0], [np.inf, 3]))
+                del p_covariance
+                plt.scatter(X, DAE_fit(X2, *p_optimal),
+                        label='fit: a=%5.2f, b=%5.2f' % tuple(p_optimal))
 
             plt.plot(X, Kb*X, 'k-', label='Kb*T')
             plt.plot(X, new_data['DAE'], 'r-', label='DAE(T)')
