@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from math import exp
 from scipy import stats, constants, optimize
+from sklearn.metrics import r2_score
 
 import matplotlib.pyplot as plt
 
@@ -142,25 +143,21 @@ def calculate_dae(data, loaded_files, p_list, p_step):
             new_data['d(Kb*T)^(-1)'] = (new_data['(Kb*T)^(-1)']).diff()
             new_data['DAE'] = new_data['d(Ln(R))']/new_data['d(Kb*T)^(-1)'] #DAE = d(Ln(R)) / d(Kb*T)^(-1)
             
-            new_data.loc[0,'DAE'] = new_data.loc[1,'DAE']
+            new_data.loc[0,'DAE'] = new_data.loc[1,'DAE'] # removing NaN row from dataset
 
-            for p in np.arange(0+p_step, 1+p_step, p_step):
-                column_p_name = 'p = ' + str(round(p,3))
-                new_data[column_p_name] = new_data['Temperatura [K]']**(1-p)
-                X = new_data['Temperatura [K]']
-                X2 = new_data[column_p_name]
-                Y = new_data['DAE']
+            X = new_data['Temperatura [K]']
+            Y = new_data['DAE']
+            p_optimal, p_covariance = optimize.curve_fit(DAE_fit, X, Y)
+            del p_covariance
+            Y2 = DAE_fit(X, *p_optimal)
 
-                # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html
-                # https://www.youtube.com/watch?v=4vryPwLtjIY
+            print('\nOptymalne wartości: a=%s, b=%s' % tuple(p_optimal))
+            print('R^2:', r2_score(Y,Y2))           
 
-                p_optimal, p_covariance = optimize.curve_fit(DAE_fit, X2, Y, bounds=([-1,0], [np.inf, 3]))
-                del p_covariance
-                plt.scatter(X, DAE_fit(X2, *p_optimal),
-                        label='fit: a=%5.2f, b=%5.2f' % tuple(p_optimal))
+            plt.plot(X, Y2, label='fit: a=%5.2f, b=%5.2f' % tuple(p_optimal))
 
             plt.plot(X, Kb*X, 'k-', label='Kb*T')
-            plt.plot(X, new_data['DAE'], 'r-', label='DAE(T)')
+            plt.scatter(X, new_data['DAE'], label='DAE(T)')
             #plt.scatter(X, new_data[column_p_name])
             plt.legend()
             plt.title(i)
@@ -168,21 +165,10 @@ def calculate_dae(data, loaded_files, p_list, p_step):
             plt.ylabel('DAE [eV]')
             plt.show()
 
-            #new_data = new_data.drop([0], axis=0)
-            #new_data = new_data.drop(['Temperatura [K]', 'Opor'], axis = 1)
-
-            # Differential function using numpy
-            #new_data = temp_data.loc[:,['Temperatura [K]', 'Opor']]
-            #new_data['d(Ln(R))'] = np.diff(np.log(new_data['Opor']), append = 1)
-            #new_data['d(Kb*T)^(-1)'] = np.diff(new_data['Temperatura [K]']*Kb, append = 1)
-            #new_data['DAE'] = new_data['d(Ln(R))']/new_data['d(Kb*T)^(-1)'] #DAE = d(Ln(R)) / d(Kb*T)^(-1)
-            
             #print('\n',i)
-            #print(new_data)
-            data_dae[x] = new_data 
+            print(new_data)
+            data_dae[x] = new_data
 
-        for i,j in enumerate(loaded_files):
-            print('\n',j,'\n',data_dae[i])
         return data_dae
 
     except KeyError:

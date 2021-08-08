@@ -17,8 +17,8 @@ def import_file():
 
     Returns:
         data (list): list of DataFrames of raw data
-        delimeter (string): separator of columns in data file
-        coma (string): decimal sign in numbers
+        delimeter (string): separator of columns in data file '/t' for tab
+        coma (string): decimal sign in numbers: ',' or '.'
         loaded_files (list): list of names of files imported to program
     """
     while True:
