@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 data = []
 data_arrenius = []
 data_dae = []
-list_Y2 = []
+list_Y_fit = []
 list_p_optimal = []
 
 # FUNCTIONS
@@ -133,7 +133,7 @@ def calculate_arrhenius(data, loaded_files, p_list, p_step):
         )
 
 
-def calculate_dae(data, loaded_files, p_list, p_step):
+def calculate_dae(data, loaded_files):
     """Function for calculating Differential Activation Energy (DAE).
 
     Args:
@@ -144,6 +144,7 @@ def calculate_dae(data, loaded_files, p_list, p_step):
 
     Returns:
         data_dae (list): list of DataFrames with calculated data for each impoted file
+        list_p_optimal (list): list of optimal parameters 'a' and 'b' in a*X^b fit
     """
     x = -1
     data_dae = data
@@ -194,35 +195,24 @@ def calculate_dae(data, loaded_files, p_list, p_step):
 
             X = new_data["Temperatura [K]"]
             Y = new_data["DAE"]
-            print(new_data)
+
             p_optimal, p_covariance = optimize.curve_fit(DAE_fit, X, Y)
             del p_covariance
 
-            #'''
-            Y2 = DAE_fit(X, *p_optimal)
+            Y_fit = DAE_fit(X, *p_optimal)
+            new_data["aX^b fit"] = Y_fit
+            print(new_data)
 
-            list_Y2.append(Y2)
             list_p_optimal.append(p_optimal)
 
-            print("\nOptymalne wartości: a=%s, b=%s" % tuple(p_optimal))
-            print("R^2:", r2_score(Y, Y2), "\n")
+            print(
+                "\nOptymalne wartości dopasowania a*X^b: a=%s, b=%s" % tuple(p_optimal)
+            )
+            print("R^2:", r2_score(Y, Y_fit), "\n")
 
-            plt.plot(X, Y2, label="fit: a=%5.2f, b=%5.2f" % tuple(p_optimal))
-
-            # plt.plot(X, Kb*X, 'k-', label='Kb*T')
-            plt.scatter(X, new_data["DAE"], label="DAE(T)")
-            # plt.scatter(X, new_data[column_p_name])
-            plt.legend()
-            plt.title(i)
-            plt.xlabel("Temp [K]")
-            plt.ylabel("DAE [eV]")
-            plt.show()
-            #'''
-
-            # print('\n',i)
             data_dae[x] = new_data
 
-        return data_dae
+        return data_dae, list_p_optimal
 
     except KeyError:
         print(

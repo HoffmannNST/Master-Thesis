@@ -49,7 +49,7 @@ def save_dae(data_dae, loaded_files, delimeter: str, coma: str, saved_files):
         saved_files (list): list of saved files
 
     Returns:
-        [list]: updated list of saved files
+        saved_files (list): list of saved files
     """
     x = -1
 

@@ -26,12 +26,12 @@ data_arrhenius, r2_table, p_list, p_step = calculate_arrhenius(
 saved_files = save_arrhenius(data_arrhenius, loaded_files, delimeter, coma, r2_table)
 
 # Calculator DAE
-data_dae = calculate_dae(data, loaded_files, p_list, p_step)
+data_dae, list_p_optimal = calculate_dae(data, loaded_files)
 
 # Save DAE data
 saved_files = save_dae(data_dae, loaded_files, delimeter, coma, saved_files)
 
 # Plot
-make_plot(data, loaded_files, data_dae, r2_table)
+make_plot(data, loaded_files, data_dae, r2_table, list_p_optimal)
 
 input("\n\nPRESS ENTER TO EXIT...")  # to be removed - helps with testing
