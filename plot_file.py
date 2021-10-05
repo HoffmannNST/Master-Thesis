@@ -59,7 +59,7 @@ def make_plot(data, loaded_files, data_dae, r2_table):
         x += 1
         temporary_data = data_dae[count]
         X = temporary_data.iloc[:, 0]
-        Y = temporary_data.iloc[:, 5]
+        Y = temporary_data.iloc[:, 4]
         plt.xlabel("T [Kelvin]")
         plt.ylabel("DAE [eV]")
         plt.title(item, {"horizontalalignment": "center"})

@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 data = []
 data_arrenius = []
 data_dae = []
+list_Y2 = []
+list_p_optimal = []
 
 # FUNCTIONS
 def p_steps_F():
@@ -152,30 +154,58 @@ def calculate_dae(data, loaded_files, p_list, p_step):
     try:
         for i in loaded_files:
             x += 1
-
             temporary_data = data_dae[x]
             new_data = temporary_data.loc[:, ["Temperatura [K]", "Opor"]]
-            new_data["(Ln(R))"] = np.log(temporary_data["Opor"])
-            new_data["d(Ln(R))"] = (new_data["(Ln(R))"]).diff()
-            new_data["(Kb*T)^(-1)"] = (temporary_data["Temperatura [K]"] * Kb) ** (-1)
-            new_data["d(Kb*T)^(-1)"] = (new_data["(Kb*T)^(-1)"]).diff()
-            new_data["DAE"] = (
-                new_data["d(Ln(R))"] / new_data["d(Kb*T)^(-1)"]
-            )  # DAE = d(Ln(R)) / d(Kb*T)^(-1)
+            new_data["(Kb*T)^(-1)"] = (new_data["Temperatura [K]"] * Kb) ** (-1)
+            new_data["(Ln(R))"] = np.log(new_data["Opor"])
 
-            new_data.loc[0, "DAE"] = new_data.loc[
-                1, "DAE"
-            ]  # removing NaN row from dataset
+            max_range = len(new_data["Temperatura [K]"]) - 2
+            # Calculation of deriviative
+            for j in range(0, max_range):
+                j += 1
+                new_data.loc[j, "DAE"] = 0.5 * (
+                    (
+                        (new_data.loc[j + 1, "(Ln(R))"] - new_data.loc[j, "(Ln(R))"])
+                        / (
+                            new_data.loc[j + 1, "(Kb*T)^(-1)"]
+                            - new_data.loc[j, "(Kb*T)^(-1)"]
+                        )
+                    )
+                    + (
+                        (new_data.loc[j, "(Ln(R))"] - new_data.loc[j - 1, "(Ln(R))"])
+                        / (
+                            new_data.loc[j, "(Kb*T)^(-1)"]
+                            - new_data.loc[j - 1, "(Kb*T)^(-1)"]
+                        )
+                    )
+                )
+
+            new_data.loc[0, "DAE"] = (
+                new_data.loc[1, "(Ln(R))"] - new_data.loc[0, "(Ln(R))"]
+            ) / (new_data.loc[1, "(Kb*T)^(-1)"] - new_data.loc[0, "(Kb*T)^(-1)"])
+
+            new_data.loc[max_range + 1, "DAE"] = (
+                new_data.loc[max_range + 1, "(Ln(R))"]
+                - new_data.loc[max_range, "(Ln(R))"]
+            ) / (
+                new_data.loc[max_range + 1, "(Kb*T)^(-1)"]
+                - new_data.loc[max_range, "(Kb*T)^(-1)"]
+            )
 
             X = new_data["Temperatura [K]"]
             Y = new_data["DAE"]
             print(new_data)
             p_optimal, p_covariance = optimize.curve_fit(DAE_fit, X, Y)
             del p_covariance
+
+            #'''
             Y2 = DAE_fit(X, *p_optimal)
 
+            list_Y2.append(Y2)
+            list_p_optimal.append(p_optimal)
+
             print("\nOptymalne wartości: a=%s, b=%s" % tuple(p_optimal))
-            print("R^2:", r2_score(Y, Y2))
+            print("R^2:", r2_score(Y, Y2), "\n")
 
             plt.plot(X, Y2, label="fit: a=%5.2f, b=%5.2f" % tuple(p_optimal))
 
@@ -187,6 +217,7 @@ def calculate_dae(data, loaded_files, p_list, p_step):
             plt.xlabel("Temp [K]")
             plt.ylabel("DAE [eV]")
             plt.show()
+            #'''
 
             # print('\n',i)
             data_dae[x] = new_data
