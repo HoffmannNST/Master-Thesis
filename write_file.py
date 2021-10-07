@@ -18,7 +18,6 @@ def save_arrhenius(data_arrhenius, loaded_files, delimeter: str, coma: str, r2_t
     Returns:
         list: list of saved files
     """
-    x = -1
     saved_files = []
 
     pathlib.Path("Results/Arrhenius").mkdir(parents=True, exist_ok=True)
@@ -28,17 +27,25 @@ def save_arrhenius(data_arrhenius, loaded_files, delimeter: str, coma: str, r2_t
     )
     saved_files.append("Results/Arrhenius/r2p_arr.txt")
 
-    for i in loaded_files:
-        x += 1
-        temporary_data = data_arrhenius[x]
-        data_path = "Results/Arrhenius/" + i + ".txt"
+    for count, item in enumerate(loaded_files, 0):
+        temporary_data = data_arrhenius[count]
+        data_path = "Results/Arrhenius/" + item + ".txt"
         temporary_data.to_csv(data_path, index=False, sep=delimeter, decimal=coma)
         saved_files.append(data_path)
 
     return saved_files
 
 
-def save_dae(data_dae, loaded_files, delimeter: str, coma: str, saved_files):
+def save_dae(
+    data_dae,
+    loaded_files,
+    delimeter: str,
+    coma: str,
+    saved_files,
+    list_p_optimal,
+    list_DAE_r2_score,
+    list_DAE_regress,
+):
     """Function that saves data calculated in calcualte_dae function to .txt files.
 
     Args:
@@ -51,22 +58,32 @@ def save_dae(data_dae, loaded_files, delimeter: str, coma: str, saved_files):
     Returns:
         saved_files (list): list of saved files
     """
-    x = -1
 
     pathlib.Path("Results/DAE").mkdir(parents=True, exist_ok=True)
 
-    for i in loaded_files:
-        x += 1
-        temporary_data = data_dae[x]
-        data_path = "Results/DAE/" + i + ".txt"
+    for count, item in enumerate(loaded_files, 0):
+        temporary_data = data_dae[count]
+        p_optimal = list_p_optimal[count]
+        DAE_r2_score = list_DAE_r2_score[count]
+        data_path = "Results/DAE/" + item + ".txt"
         temporary_data.to_csv(data_path, index=False, sep=delimeter, decimal=coma)
+        file_append = open(data_path, "a")
+        file_append.write(
+            "\nOptimal values of fitting a*X^b: a=%s, b=%s, " % tuple(p_optimal)
+        )
+        file_append.write("R^2: %s" % DAE_r2_score)
+        DAE_regress = list_DAE_regress[count]
+        file_append.write(
+            "\nOptimal values of linear reggresion for log(DAE) = log(a) + b*log(T): a'=%s, b'=%s, R^2: %s"
+            % tuple(DAE_regress)
+        )
 
         saved_files.append(data_path)
 
     # to be removed
     print("\nFiles saved:")
     for count, item in enumerate(saved_files, 0):
-        print(count, item)
+        print(count + 1, item)
     return saved_files
 
 

@@ -33,14 +33,16 @@ def import_file():
             # coma = input('\nSpecify decimal separator in the files:\n')     # '.' or ','
             coma = ","
 
-            for i in directories_list:
-                if pathlib.Path(i).exists() == True:
-                    data.append(pd.read_csv(i, sep=delimeter, decimal=coma, header=0))
-                    loaded_files.append((i.name).split(".")[0])
+            for item in directories_list:
+                if pathlib.Path(item).exists() == True:
+                    data.append(
+                        pd.read_csv(item, sep=delimeter, decimal=coma, header=0)
+                    )
+                    loaded_files.append((item.name).split(".")[0])
 
             print("\nFiles loaded:")
             for count, item in enumerate(loaded_files, 0):
-                print(count, item + ".txt")
+                print(count + 1, item + ".txt")
             return data, delimeter, coma, loaded_files
 
         else:

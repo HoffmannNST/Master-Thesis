@@ -16,6 +16,8 @@ data_arrenius = []
 data_dae = []
 list_Y_fit = []
 list_p_optimal = []
+list_DAE_r2_score = []
+list_DAE_regress = []
 
 # FUNCTIONS
 def p_steps_F():
@@ -67,7 +69,6 @@ def calculate_arrhenius(data, loaded_files, p_list, p_step):
         p_list (list): list of p parameter within set range with set step
         p_step (float): increment of p parameter
     """
-    x = -1
     data_arrhenius = list(data)
 
     # Tables of calculated parameters
@@ -82,10 +83,8 @@ def calculate_arrhenius(data, loaded_files, p_list, p_step):
     )  # R0 is a pre-exponential factor deriviated from intercept of function
 
     try:
-        for i in loaded_files:
-            x += 1
-
-            temporary_data = data_arrhenius[x]
+        for count, item in enumerate(loaded_files, 0):
+            temporary_data = data_arrhenius[count]
             new_data = temporary_data.loc[:, ["Temperatura [K]", "Opor"]]
             new_data["Ln(1/R)"] = np.log(1 / new_data["Opor"])
 
@@ -108,10 +107,10 @@ def calculate_arrhenius(data, loaded_files, p_list, p_step):
                 T0_list.append(slope ** (1 / p))
                 R0_list.append(exp(-intercept))
 
-            r2_table_arrhenius[i] = r2_list
-            T0_table_arrhenius[i] = T0_list
-            R0_table_arrhenius[i] = R0_list
-            data_arrhenius[x] = new_data
+            r2_table_arrhenius[item] = r2_list
+            T0_table_arrhenius[item] = T0_list
+            R0_table_arrhenius[item] = R0_list
+            data_arrhenius[count] = new_data
 
         print("\nMax values of r^2(p):")
         for i, j in enumerate(loaded_files):
@@ -146,19 +145,17 @@ def calculate_dae(data, loaded_files):
         data_dae (list): list of DataFrames with calculated data for each impoted file
         list_p_optimal (list): list of optimal parameters 'a' and 'b' in a*X^b fit
     """
-    x = -1
     data_dae = data
     Kb = constants.value(
         "Boltzmann constant in eV/K"
     )  # 'Boltzmann constant' or '...in eV/K' or '...in Hz/K' or '...in inverse meter per kelvin'
 
     try:
-        for i in loaded_files:
-            x += 1
-            temporary_data = data_dae[x]
+        for count, item in enumerate(loaded_files, 0):
+            temporary_data = data_dae[count]
             new_data = temporary_data.loc[:, ["Temperatura [K]", "Opor"]]
             new_data["(Kb*T)^(-1)"] = (new_data["Temperatura [K]"] * Kb) ** (-1)
-            new_data["(Ln(R))"] = np.log(new_data["Opor"])
+            new_data["(ln(R))"] = np.log(new_data["Opor"])
 
             max_range = len(new_data["Temperatura [K]"]) - 2
             # Calculation of deriviative
@@ -166,14 +163,14 @@ def calculate_dae(data, loaded_files):
                 j += 1
                 new_data.loc[j, "DAE"] = 0.5 * (
                     (
-                        (new_data.loc[j + 1, "(Ln(R))"] - new_data.loc[j, "(Ln(R))"])
+                        (new_data.loc[j + 1, "(ln(R))"] - new_data.loc[j, "(ln(R))"])
                         / (
                             new_data.loc[j + 1, "(Kb*T)^(-1)"]
                             - new_data.loc[j, "(Kb*T)^(-1)"]
                         )
                     )
                     + (
-                        (new_data.loc[j, "(Ln(R))"] - new_data.loc[j - 1, "(Ln(R))"])
+                        (new_data.loc[j, "(ln(R))"] - new_data.loc[j - 1, "(ln(R))"])
                         / (
                             new_data.loc[j, "(Kb*T)^(-1)"]
                             - new_data.loc[j - 1, "(Kb*T)^(-1)"]
@@ -182,12 +179,12 @@ def calculate_dae(data, loaded_files):
                 )
 
             new_data.loc[0, "DAE"] = (
-                new_data.loc[1, "(Ln(R))"] - new_data.loc[0, "(Ln(R))"]
+                new_data.loc[1, "(ln(R))"] - new_data.loc[0, "(ln(R))"]
             ) / (new_data.loc[1, "(Kb*T)^(-1)"] - new_data.loc[0, "(Kb*T)^(-1)"])
 
             new_data.loc[max_range + 1, "DAE"] = (
-                new_data.loc[max_range + 1, "(Ln(R))"]
-                - new_data.loc[max_range, "(Ln(R))"]
+                new_data.loc[max_range + 1, "(ln(R))"]
+                - new_data.loc[max_range, "(ln(R))"]
             ) / (
                 new_data.loc[max_range + 1, "(Kb*T)^(-1)"]
                 - new_data.loc[max_range, "(Kb*T)^(-1)"]
@@ -201,18 +198,41 @@ def calculate_dae(data, loaded_files):
 
             Y_fit = DAE_fit(X, *p_optimal)
             new_data["aX^b fit"] = Y_fit
-            print(new_data)
 
             list_p_optimal.append(p_optimal)
+            DAE_r2_score = r2_score(Y, Y_fit)
+            list_DAE_r2_score.append(DAE_r2_score)
 
-            print(
-                "\nOptymalne wartości dopasowania a*X^b: a=%s, b=%s" % tuple(p_optimal)
+            print("\nFor data: " + item)
+            print("Optimal values of fitting a*X^b: a=%s, b=%s" % tuple(p_optimal))
+            print("R^2:", DAE_r2_score)
+
+            # vvv Logarytmowanie i fittowanie regresją liniową vvv
+            new_data["log(DAE)"] = np.log10(new_data["DAE"])
+            fit_param_a, fit_param_b = tuple(p_optimal)
+            fit_param_a = np.log10(fit_param_a)
+            new_data["log(a) + b*log(T)"] = fit_param_a + fit_param_b * np.log10(
+                new_data["Temperatura [K]"]
             )
-            print("R^2:", r2_score(Y, Y_fit), "\n")
 
-            data_dae[x] = new_data
+            X_log = new_data["log(DAE)"]
+            Y_log = new_data["log(a) + b*log(T)"]
 
-        return data_dae, list_p_optimal
+            slope, intercept, r_value, p_value, standard_error = stats.linregress(
+                X_log, Y_log
+            )
+            del p_value
+            del standard_error
+
+            list_DAE_regress.append(tuple((slope, intercept, r_value ** 2)))
+
+            print("\nFor data: " + item)
+            print(
+                "slope: %s, intercept: %s, r^2: %s" % (slope, intercept, r_value ** 2)
+            )
+
+            data_dae[count] = new_data
+        return data_dae, list_p_optimal, list_DAE_r2_score, list_DAE_regress
 
     except KeyError:
         print(
