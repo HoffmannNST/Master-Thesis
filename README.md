@@ -12,3 +12,8 @@ Program can be set to fit parameter p in range from 0.0 to 1.0 with different st
 Next You can choose path for saving calculated data (by default "./program_EXE/dist/index/Results").
 
 You can pass all of the above questions with ENTER to choose default options.
+
+You can download .exe version of this program from link posted below.
+Please read the readme.md file attached in the program_EXE folder!
+
+https://drive.google.com/file/d/148c5pthXME-dFbM4kyHC4tB7am8R6wya/view?usp=sharing
