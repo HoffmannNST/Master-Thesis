@@ -13,7 +13,7 @@ Next You can choose path for saving calculated data (by default "./program_EXE/d
 
 You can pass all of the above questions with ENTER to choose default options.
 
-You can download .exe version of this program from link posted below.
+You can download .exe version of this program from link below.
 Please read the readme.md file attached in the program_EXE folder!
 
 https://drive.google.com/file/d/148c5pthXME-dFbM4kyHC4tB7am8R6wya/view?usp=sharing
