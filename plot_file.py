@@ -8,7 +8,16 @@ import pathlib
 
 # FUNCTIONS
 # Calculate
-def make_plot(data, loaded_files, data_dae, r2_table, list_p_optimal):
+def make_plot(
+    data,
+    loaded_files,
+    data_dae,
+    r2_table,
+    list_p_optimal,
+    T_column_name,
+    R_column_name,
+    save_directory,
+):
     """Function that makes plots of 3 different functions and saves them as .png files.
 
     Args:
@@ -17,12 +26,16 @@ def make_plot(data, loaded_files, data_dae, r2_table, list_p_optimal):
         data_dae (list): list of DataFrames of calculted data
         r2_table (pandas.DataFrame): table of r^2 (cube of pearson coeficient) values
         list_p_optimal (list): list of optimal parameters 'a' and 'b' in a*X^b fit
+        T_column_name (str): name of column containing temperature data
+        R_column_name (str): name of column containing resistance data
+        save_directory (str): directory of saved files
     """
-    pathlib.Path("Results/Plots").mkdir(parents=True, exist_ok=True)
+    save_directory += "/Plots"
+    pathlib.Path(save_directory).mkdir(parents=True, exist_ok=True)
     print("\nPlots saved:")
     file_count = 0
 
-    # Plot r^2(p)
+    # Plot r^2(p) from Arrhenius
     X = r2_table.iloc[:, 0]
     for count, item in enumerate(loaded_files, 1):
         try:
@@ -32,9 +45,8 @@ def make_plot(data, loaded_files, data_dae, r2_table, list_p_optimal):
             plt.title(item, {"horizontalalignment": "center"})
             plt.suptitle("Arrhenius r$^{2}$(p)")
             plt.scatter(X, Y)
-            file_path = "Results/Plots/r2_arr_" + item + ".png"
+            file_path = save_directory + "/r2_arr_" + item + ".png"
             plt.savefig(file_path, dpi=300)
-            # plt.show()
             plt.close()
             file_count += 1
             print(file_count, file_path)
@@ -46,16 +58,15 @@ def make_plot(data, loaded_files, data_dae, r2_table, list_p_optimal):
     for count, item in enumerate(loaded_files, 0):
         try:
             temporary_data = data[count]
-            X = temporary_data.iloc[:, 0]
-            Y = temporary_data.iloc[:, 1]
+            X = temporary_data[T_column_name]
+            Y = temporary_data[R_column_name]
             plt.xlabel("T [Kelvin]")
             plt.ylabel("R [Ohm]")
             plt.title(item, {"horizontalalignment": "center"})
             plt.suptitle("R(T)")
             plt.scatter(X, Y)
-            file_path = "Results/Plots/RT_" + item + ".png"
+            file_path = save_directory + "/RT_" + item + ".png"
             plt.savefig(file_path, dpi=300)
-            # plt.show()
             plt.close()
             file_count += 1
             print(file_count, file_path)
@@ -68,9 +79,9 @@ def make_plot(data, loaded_files, data_dae, r2_table, list_p_optimal):
         try:
             temporary_data = data_dae[count]
             p_optimal = list_p_optimal[count]
-            X = temporary_data.iloc[:, 0]
-            Y = temporary_data.iloc[:, 4]
-            Y_fit = temporary_data.iloc[:, 5]
+            X = temporary_data[T_column_name]
+            Y = temporary_data["DAE"]
+            Y_fit = temporary_data["aX^b fit"]
             plt.xlabel("T [Kelvin]")
             plt.ylabel("DAE [eV]")
             plt.title(item, {"horizontalalignment": "center"})
@@ -78,9 +89,8 @@ def make_plot(data, loaded_files, data_dae, r2_table, list_p_optimal):
             plt.scatter(X, Y)
             plt.plot(X, Y_fit, label="fit aX^b: a=%5.4f, b=%5.4f" % tuple(p_optimal))
             plt.legend()
-            file_path = "Results/Plots/DAE_" + item + ".png"
+            file_path = save_directory + "/DAE_" + item + ".png"
             plt.savefig(file_path, dpi=300)
-            # plt.show()
             plt.close()
             file_count += 1
             print(file_count, file_path)
@@ -88,6 +98,7 @@ def make_plot(data, loaded_files, data_dae, r2_table, list_p_optimal):
             print("! ERROR: Plot ", item + ".png couldn't be saved !")
             plt.close()
 
+    # plot log(DAE)
     for count, item in enumerate(loaded_files, 0):
         try:
             temporary_data = data_dae[count]
@@ -98,7 +109,7 @@ def make_plot(data, loaded_files, data_dae, r2_table, list_p_optimal):
             plt.ylabel("log(DAE)")
             plt.title(item, {"horizontalalignment": "center"})
             plt.suptitle("log(DAE) = log(a) + b*log(T)")
-            file_path = "Results/Plots/DAE_log_fit_" + item + ".png"
+            file_path = save_directory + "/DAE_log_fit_" + item + ".png"
             plt.savefig(file_path, dpi=300)
             plt.close()
             file_count += 1
@@ -109,4 +120,4 @@ def make_plot(data, loaded_files, data_dae, r2_table, list_p_optimal):
 
 
 if __name__ == "__main__":
-    print("Run program 'index.py', insted of this one!")
+    print("\nRun program 'index.py', insted of this one!\n")

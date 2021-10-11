@@ -5,7 +5,9 @@
 import pathlib
 
 # FUNCTIONS
-def save_arrhenius(data_arrhenius, loaded_files, delimeter: str, coma: str, r2_table):
+def save_arrhenius(
+    data_arrhenius, loaded_files, delimeter: str, coma: str, r2_table, save_directory
+):
     """Function that saves data calculated in calcualte_arrhenius function to .txt files.
 
     Args:
@@ -14,22 +16,27 @@ def save_arrhenius(data_arrhenius, loaded_files, delimeter: str, coma: str, r2_t
         delimeter (str): separator of columns in data file
         coma (str): decimal sign in numbers
         r2_table (pandas.DataFrame): table of r^2 (cube of pearson coeficient) values
+        save_directory (str): directory of saved files
 
     Returns:
-        list: list of saved files
+        saved_files (list): list of saved files
     """
     saved_files = []
 
-    pathlib.Path("Results/Arrhenius").mkdir(parents=True, exist_ok=True)
+    save_directory += "/Arrhenius"
+    pathlib.Path(save_directory).mkdir(parents=True, exist_ok=True)
 
     r2_table.to_csv(
-        "Results/Arrhenius/r2p_arr.txt", index=False, sep=delimeter, decimal=coma
+        save_directory + "/r2p_arr.txt",
+        index=False,
+        sep=delimeter,
+        decimal=coma,
     )
-    saved_files.append("Results/Arrhenius/r2p_arr.txt")
+    saved_files.append(save_directory + "/r2p_arr.txt")
 
     for count, item in enumerate(loaded_files, 0):
         temporary_data = data_arrhenius[count]
-        data_path = "Results/Arrhenius/" + item + ".txt"
+        data_path = save_directory + "/" + item + ".txt"
         temporary_data.to_csv(data_path, index=False, sep=delimeter, decimal=coma)
         saved_files.append(data_path)
 
@@ -45,6 +52,7 @@ def save_dae(
     list_p_optimal,
     list_DAE_r2_score,
     list_DAE_regress,
+    save_directory,
 ):
     """Function that saves data calculated in calcualte_dae function to .txt files.
 
@@ -54,18 +62,19 @@ def save_dae(
         delimeter (str): separator of columns in data file
         coma (str): decimal sign in numbers
         saved_files (list): list of saved files
+        save_directory (str): directory of saved files
 
     Returns:
         saved_files (list): list of saved files
     """
-
-    pathlib.Path("Results/DAE").mkdir(parents=True, exist_ok=True)
+    save_directory += "/DAE"
+    pathlib.Path(save_directory).mkdir(parents=True, exist_ok=True)
 
     for count, item in enumerate(loaded_files, 0):
         temporary_data = data_dae[count]
         p_optimal = list_p_optimal[count]
         DAE_r2_score = list_DAE_r2_score[count]
-        data_path = "Results/DAE/" + item + ".txt"
+        data_path = save_directory + "/" + item + ".txt"
         temporary_data.to_csv(data_path, index=False, sep=delimeter, decimal=coma)
         file_append = open(data_path, "a")
         file_append.write(
@@ -88,4 +97,4 @@ def save_dae(
 
 
 if __name__ == "__main__":
-    print("Run program 'index.py', insted of this one!")
+    print("\nRun program 'index.py', insted of this one!\n")

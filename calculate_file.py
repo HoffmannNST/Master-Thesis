@@ -8,8 +8,6 @@ from math import exp
 from scipy import stats, constants, optimize
 from sklearn.metrics import r2_score
 
-import matplotlib.pyplot as plt
-
 # Predefined settings
 data = []
 data_arrenius = []
@@ -28,8 +26,10 @@ def p_steps_F():
         p_step (float): increment of p parameter
     """
     try:
-        # p_step = float(input('\nEnter the step for the p parameter (i.e. 0.1): '))
-        p_step = 0.1
+        p_step = float(input("\nEnter the step for the p parameter (i.e. 0.1): "))
+        if p_step == "":
+            p_step = 0.1
+
     except:
         print("Invalid input!")
         p_step = 0.1
@@ -54,7 +54,9 @@ def DAE_fit(x, a, b):
     return a * x ** b
 
 
-def calculate_arrhenius(data, loaded_files, p_list, p_step):
+def calculate_arrhenius(
+    data, loaded_files, p_list, p_step, T_column_name, R_column_name
+):
     """Function for calculating parameters p with Arrhenius curves.
 
     Args:
@@ -62,6 +64,8 @@ def calculate_arrhenius(data, loaded_files, p_list, p_step):
         loaded_files (list): list of names of files imported to program
         p_list (list): list of p parameter within set range with set step
         p_step (float): increment of p parameter
+        T_column_name (str): name of column containing temperature data
+        R_column_name (str): name of column containing resistance data
 
     Returns:
         data_arr (list): list of DataFrames with calculated data for each impoted file
@@ -85,8 +89,8 @@ def calculate_arrhenius(data, loaded_files, p_list, p_step):
     try:
         for count, item in enumerate(loaded_files, 0):
             temporary_data = data_arrhenius[count]
-            new_data = temporary_data.loc[:, ["Temperatura [K]", "Opor"]]
-            new_data["Ln(1/R)"] = np.log(1 / new_data["Opor"])
+            new_data = temporary_data.loc[:, [T_column_name, R_column_name]]
+            new_data["Ln(1/R)"] = np.log(1 / new_data[R_column_name])
 
             Y = new_data["Ln(1/R)"]
             r2_list = []
@@ -95,7 +99,7 @@ def calculate_arrhenius(data, loaded_files, p_list, p_step):
 
             for p in np.arange(0 + p_step, 1 + p_step, p_step):
                 column_p_name = "p = " + str(round(p, 3))
-                new_data[column_p_name] = 1 / (new_data["Temperatura [K]"] ** p)
+                new_data[column_p_name] = 1 / (new_data[T_column_name] ** p)
                 X = new_data[column_p_name]
                 slope, intercept, r_value, p_value, standard_error = stats.linregress(
                     X, Y
@@ -132,14 +136,14 @@ def calculate_arrhenius(data, loaded_files, p_list, p_step):
         )
 
 
-def calculate_dae(data, loaded_files):
+def calculate_dae(data, loaded_files, T_column_name, R_column_name):
     """Function for calculating Differential Activation Energy (DAE).
 
     Args:
         data (list): list of DataFrames of raw data
         loaded_files (list): list of names of files imported to program
-        p_list (list): list of p parameter within set range with set step
-        p_step (float): increment of p parameter
+        T_column_name (str): name of column containing temperature data
+        R_column_name (str): name of column containing resistance data
 
     Returns:
         data_dae (list): list of DataFrames with calculated data for each impoted file
@@ -153,11 +157,11 @@ def calculate_dae(data, loaded_files):
     try:
         for count, item in enumerate(loaded_files, 0):
             temporary_data = data_dae[count]
-            new_data = temporary_data.loc[:, ["Temperatura [K]", "Opor"]]
-            new_data["(Kb*T)^(-1)"] = (new_data["Temperatura [K]"] * Kb) ** (-1)
-            new_data["(ln(R))"] = np.log(new_data["Opor"])
+            new_data = temporary_data.loc[:, [T_column_name, R_column_name]]
+            new_data["(Kb*T)^(-1)"] = (new_data[T_column_name] * Kb) ** (-1)
+            new_data["(ln(R))"] = np.log(new_data[R_column_name])
 
-            max_range = len(new_data["Temperatura [K]"]) - 2
+            max_range = len(new_data[T_column_name]) - 2
             # Calculation of deriviative
             for j in range(0, max_range):
                 j += 1
@@ -190,7 +194,7 @@ def calculate_dae(data, loaded_files):
                 - new_data.loc[max_range, "(Kb*T)^(-1)"]
             )
 
-            X = new_data["Temperatura [K]"]
+            X = new_data[T_column_name]
             Y = new_data["DAE"]
 
             p_optimal, p_covariance = optimize.curve_fit(DAE_fit, X, Y)
@@ -212,7 +216,7 @@ def calculate_dae(data, loaded_files):
             fit_param_a, fit_param_b = tuple(p_optimal)
             fit_param_a = np.log10(fit_param_a)
             new_data["log(a) + b*log(T)"] = fit_param_a + fit_param_b * np.log10(
-                new_data["Temperatura [K]"]
+                new_data[T_column_name]
             )
 
             X_log = new_data["log(DAE)"]
@@ -241,4 +245,4 @@ def calculate_dae(data, loaded_files):
 
 
 if __name__ == "__main__":
-    print("Run program 'index.py', insted of this one!")
+    print("\nRun program 'index.py', insted of this one!\n")
