@@ -5,7 +5,7 @@
 from read_file import import_file, get_column_names, read_config
 from calculate_file import calculate_arrhenius, calculate_dae, p_steps_f
 from write_file import save_arrhenius, save_dae
-from plot_file import make_plot
+from plot_file import make_plot_call
 
 # START XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # Welcome message
@@ -90,7 +90,7 @@ saved_files = save_dae(
 )
 
 # Plot
-make_plot(
+make_plot_call(
     data,
     loaded_files,
     data_dae,
@@ -99,6 +99,7 @@ make_plot(
     column_T_name,
     column_r_name,
     save_directory,
+    list_dae_r2_score,
 )
 
 input("\nPRESS ENTER TO EXIT SUMMARY...")  # to be removed - helps with testing

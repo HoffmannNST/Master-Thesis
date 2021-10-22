@@ -17,7 +17,16 @@ def read_config():
     """Function that reads user's program settings from config.yml file.
 
     Returns:
-        [type]: [description]
+        read_directory (string): directory of data files
+        data_file_format (string): format of data files (e.g. '.txt')
+        save_directory (str): directory for saving files
+        delimeter (string): separator of columns in data file '/t' for tab
+        decimal_separator (string): decimal sign in numbers: ',' or '.'
+        column_t_index (str): index of column containing temperature data
+        column_r_index (str): index of column containing resistance data
+        p_range_min (float): minimal value in range of fitting parameter p
+        p_range_max (float): maximal value in range of fitting parameter p
+        p_step (float): increment of p parameter
     """
 
     try:
@@ -56,8 +65,6 @@ def import_file(read_directory, data_file_format, delimeter, decimal_separator):
 
     Returns:
         data (list): list of DataFrames of raw data
-        delimeter (string): separator of columns in data file '/t' for tab
-        decimal_separator (string): decimal sign in numbers: ',' or '.'
         loaded_files (list): list of names of files imported to program
     """
 
@@ -111,6 +118,8 @@ def get_column_names(
 
     Args:
         data (list): list of DataFrames of raw data
+        column_t_index (str): index of column containing temperature data
+        column_r_index (str): index of column containing resistance data
 
     Returns:
         column_t_name (str): name of column containing temperature data

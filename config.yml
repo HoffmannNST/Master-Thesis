@@ -5,6 +5,6 @@ delimeter: "\t"
 decimal_separator: ","
 column_t_index: 0
 column_r_index: 1
-p_range_min: 0
+p_range_min: -1
 p_range_max: 1
-p_step: 0.1
+p_step: 0.05

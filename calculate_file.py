@@ -24,10 +24,7 @@ def p_steps_f(p_step, p_range_min, p_range_max):
     """Function that sets step for calculating parameter p in set range
 
     Returns:
-        p_range_min (float): minimal value in range of fitting parameter p
-        p_range_max (float): maximal value in range of fitting parameter p
         p_list (list): list of p parameter within set range with set step
-        p_step (float): increment of p parameter
     """
     p_list = []
     for count in np.arange(p_range_min + p_step, p_range_max + p_step, p_step):
@@ -69,10 +66,12 @@ def calculate_arrhenius(
         p_step (float): increment of p parameter
         column_t_name (str): name of column containing temperature data
         column_r_name (str): name of column containing resistance data
+        p_range_min (float): minimal value in range of fitting parameter p
+        p_range_max (float): maximal value in range of fitting parameter p
 
     Returns:
         data_arr (list): list of DataFrames with calculated data for each impoted file
-        r2_table_arr (pandas.DataFrame): table of r^2 (cube of pearson coeficient) values
+        r2_table_arr (pandas.DataFrame): table of R^2 (cube of pearson coeficient) values
         p_list (list): list of p parameter within set range with set step
         p_step (float): increment of p parameter
     """
@@ -82,10 +81,10 @@ def calculate_arrhenius(
     r2_table_arrhenius = pd.DataFrame(
         p_list, columns=["p"]
     )  # r2 is a correlation coeficient
-    T0_table_arrhenius = pd.DataFrame(
+    t0_table_arrhenius = pd.DataFrame(
         p_list, columns=["p"]
     )  # T0 is a characteristic temp. deriviated from slope of function
-    R0_table_arrhenius = pd.DataFrame(
+    r0_table_arrhenius = pd.DataFrame(
         p_list, columns=["p"]
     )  # R0 is a pre-exponential factor deriviated from intercept of function
 
@@ -95,42 +94,48 @@ def calculate_arrhenius(
             new_data = temporary_data.loc[:, [column_t_name, column_r_name]]
             new_data["Ln(1/R)"] = np.log(1 / new_data[column_r_name])
 
-            Y = new_data["Ln(1/R)"]
+            y_data = new_data["Ln(1/R)"]
             r2_list = []
-            T0_list = []
-            R0_list = []
+            t0_list = []
+            r0_list = []
 
             for p in np.arange(p_range_min + p_step, p_range_max + p_step, p_step):
                 column_p_name = "p = " + str(round(p, 3))
                 new_data[column_p_name] = 1 / (new_data[column_t_name] ** p)
-                X = new_data[column_p_name]
+                x_data = new_data[column_p_name]
                 slope, intercept, r_value, p_value, standard_error = stats.linregress(
-                    X, Y
+                    x_data, y_data
                 )
                 del p_value
                 del standard_error
+                if p > -0.0001 and p < 0.0001:
+                    r2_list.append(None)
+                    t0_list.append(None)
+                    r0_list.append(None)
+                    continue
                 r2_list.append(r_value ** 2)
-                slope *= -1
-                T0_list.append(slope ** (1 / p))
-                R0_list.append(exp(-intercept))
+                if slope < 0:
+                    slope *= -1
+                t0_list.append(slope ** (1 / p))
+                r0_list.append(exp(-intercept))
 
             r2_table_arrhenius[item] = r2_list
-            T0_table_arrhenius[item] = T0_list
-            R0_table_arrhenius[item] = R0_list
+            t0_table_arrhenius[item] = t0_list
+            r0_table_arrhenius[item] = r0_list
             data_arrhenius[count] = new_data
 
-        print("\nMax values of r^2(p):")
+        print("\nFROM ARRHENIUS METHOD:\nMax values of R^2(p):")
         for i, j in enumerate(loaded_files):
             index_p = r2_table_arrhenius[j].idxmax()
             max_r2 = r2_table_arrhenius.iloc[index_p, i + 1]
             arr_param_p = r2_table_arrhenius.iloc[index_p, 0]
-            arr_param_t0 = T0_table_arrhenius.iloc[index_p, i + 1]
-            arr_param_r0 = R0_table_arrhenius.iloc[index_p, i + 1]
+            arr_param_t0 = t0_table_arrhenius.iloc[index_p, i + 1]
+            arr_param_r0 = r0_table_arrhenius.iloc[index_p, i + 1]
 
             list_arr_params.append(tuple((arr_param_p, arr_param_t0, arr_param_r0)))
 
             print(
-                "%s. max r^2 = %.3f for p = %.2f, parameters T0 = %.2f, R0 = %.2f, for data %s"
+                "\t%s. max R^2 = %.4f for p = %.2f, parameters T0 = %.2f, R0 = %.2f, for data %s"
                 % (i + 1, max_r2, arr_param_p, arr_param_t0, arr_param_r0, j)
             )
 
@@ -141,8 +146,11 @@ def calculate_arrhenius(
             "\n! KeyERROR: One or more data sets have different decimal separator than declared !"
         )
 
-    except ValueError:
-        print("\n! ValueERROR: Config file is incorrectly set or Data is incorect !")
+    # except ValueError:
+    #    print("\n! ValueERROR: Config file is incorrectly set or Data is incorrect !")
+
+    # except OverflowError:
+    # print("\n! OverflowERROR: Range of fitting parameter p is set incrroectly !")
 
 
 def calculate_dae(data, loaded_files, column_t_name, column_r_name):
@@ -157,20 +165,22 @@ def calculate_dae(data, loaded_files, column_t_name, column_r_name):
     Returns:
         data_dae (list): list of DataFrames with calculated data for each impoted file
         list_p_optimal (list): list of tuples of optimal parameters 'a' and 'b' in a*X^b fit
-        list_dae_r2_score (list): list of r^2 values of fitting a*X^b
-        list_dae_regress (list): list of tuples of best fitting parameters of linear reggresion with r^2 parameter
+        list_dae_r2_score (list): list of R^2 values of fitting a*X^b
+        list_dae_regress (list): list of tuples of best fitting parameters of linear
+            reggresion with R^2 parameter
         list_dae_params (list): list of tuples of final calculated values in DAE method (p, T0)
     """
     data_dae = data
-    Kb = constants.value(
+    kb_const = constants.value(
         "Boltzmann constant in eV/K"
     )  # 'Boltzmann constant' or '...in eV/K' or '...in Hz/K' or '...in inverse meter per kelvin'
 
+    print("\nFROM DAE METHOD: ")
     try:
         for count, item in enumerate(loaded_files, 0):
             temporary_data = data_dae[count]
             new_data = temporary_data.loc[:, [column_t_name, column_r_name]]
-            new_data["(Kb*T)^(-1)"] = (new_data[column_t_name] * Kb) ** (-1)
+            new_data["(Kb*T)^(-1)"] = (new_data[column_t_name] * kb_const) ** (-1)
             new_data["(ln(R))"] = np.log(new_data[column_r_name])
 
             max_range = len(new_data[column_t_name]) - 2
@@ -194,10 +204,12 @@ def calculate_dae(data, loaded_files, column_t_name, column_r_name):
                     )
                 )
 
+            # First element
             new_data.loc[0, "DAE"] = (
                 new_data.loc[1, "(ln(R))"] - new_data.loc[0, "(ln(R))"]
             ) / (new_data.loc[1, "(Kb*T)^(-1)"] - new_data.loc[0, "(Kb*T)^(-1)"])
 
+            # Last element
             new_data.loc[max_range + 1, "DAE"] = (
                 new_data.loc[max_range + 1, "(ln(R))"]
                 - new_data.loc[max_range, "(ln(R))"]
@@ -206,22 +218,18 @@ def calculate_dae(data, loaded_files, column_t_name, column_r_name):
                 - new_data.loc[max_range, "(Kb*T)^(-1)"]
             )
 
-            X = new_data[column_t_name]
-            Y = new_data["DAE"]
+            x_data = new_data[column_t_name]
+            y_data = new_data["DAE"]
 
-            p_optimal, p_covariance = optimize.curve_fit(fit_dae, X, Y)
+            p_optimal, p_covariance = optimize.curve_fit(fit_dae, x_data, y_data)
             del p_covariance
 
-            Y_fit = fit_dae(X, *p_optimal)
-            new_data["aX^b fit"] = Y_fit
+            y_fit = fit_dae(x_data, *p_optimal)
+            new_data["aX^b fit"] = y_fit
 
             list_p_optimal.append(p_optimal)
-            dae_r2_score = r2_score(Y, Y_fit)
+            dae_r2_score = r2_score(y_data, y_fit)
             list_dae_r2_score.append(dae_r2_score)
-
-            print("\nFor data: " + item)
-            print("Optimal values of fitting a*X^b: a=%s, b=%s" % tuple(p_optimal))
-            print("R^2:", dae_r2_score)
 
             # vvv Regerssion fit vvv
             new_data["log(DAE)"] = np.log10(new_data["DAE"])
@@ -231,32 +239,37 @@ def calculate_dae(data, loaded_files, column_t_name, column_r_name):
                 new_data[column_t_name]
             )
 
-            X_log = new_data["log(DAE)"]
-            Y_log = new_data["log(a) + b*log(T)"]
+            x_log = new_data["log(DAE)"]
+            y_log = new_data["log(a) + b*log(T)"]
 
             slope, intercept, r_value, p_value, standard_error = stats.linregress(
-                X_log, Y_log
+                x_log, y_log
             )
             del p_value
             del standard_error
 
             list_dae_regress.append(tuple((slope, intercept, r_value ** 2)))
 
-            print("Linear regression parameters for log(DAE) = log(a) + b*log(T): ")
-            print("a': %s, b': %s, r^2: %s" % (slope, intercept, r_value ** 2))
-
-            p_param_dae = 1 - slope
-            t0_param_dae = fit_param_a / p_param_dae * Kb
-            print(t0_param_dae)
+            if slope < 1:
+                p_param_dae = 1 - slope
+            else:
+                p_param_dae = slope - 1
+            t0_param_dae = fit_param_a / p_param_dae * kb_const
             t0_param_dae = t0_param_dae ** (1 / p_param_dae)
 
             list_dae_params.append(tuple((p_param_dae, t0_param_dae)))
 
-            print("\nParameters form DAE calculations: ")
+            print(str(count + 1), ". For data: " + item)
             print(
-                "%s. p = %s, parameter T0 = %s, for data %s"
-                % (count + 1, p_param_dae, t0_param_dae, item)
+                "\tOptimal values of fitting a*X^b: \n\t\ta=%s, b=%s" % tuple(p_optimal)
             )
+            print("\t\tR^2:", dae_r2_score)
+
+            print("\tLinear regression parameters for log(DAE) = log(a) + b*log(T): ")
+            print("\t\ta': %s, b': %s, R^2: %s" % (slope, intercept, r_value ** 2))
+
+            print("\tFinal calcualted values:")
+            print("\t\tp = %s, parameter T0 = %s\n" % (p_param_dae, t0_param_dae))
 
             data_dae[count] = new_data
         return (

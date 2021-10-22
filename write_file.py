@@ -21,9 +21,10 @@ def save_arrhenius(
         loaded_files (list): list of names of files imported to program
         delimeter (str): separator of columns in data file
         decimal_separator (str): decimal sign in numbers
-        r2_table (pandas.DataFrame): table of r^2 (cube of pearson coeficient) values
+        r2_table (pandas.DataFrame): table of R^2 (cube of pearson coeficient) values
         save_directory (str): directory of saved files
-        list_arr_params (list): list of tuples of parameters calculated in arrhenius method for every datasets
+        list_arr_params (list): list of tuples of parameters calculated in
+            arrhenius method for every datasets
 
     Returns:
         saved_files (list): list of saved files
@@ -79,10 +80,11 @@ def save_dae(
         decimal_separator (str): decimal sign in numbers
         saved_files (list): list of saved files
         list_p_optimal (list): list of tuples of optimal parameters 'a' and 'b' in a*X^b fit
-        list_dae_r2_score (list): list of r^2 values of fitting a*X^b
-        list_dae_regress (list): list of tuples of best fitting parameters of linear reggresion with r^2 parameter
+        list_dae_r2_score (list): list of R^2 values of fitting a*X^b
+        list_dae_regress (list): list of tuples of best fitting parameters of linear r
+            eggresion with R^2 parameter
         list_dae_params (list): list of tuples of final calculated values in DAE method (p, T0)
-        save_directory (str): directory of saved files
+        save_directory (str): directory for saving files
 
     Returns:
         saved_files (list): list of saved files
