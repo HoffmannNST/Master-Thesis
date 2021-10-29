@@ -43,7 +43,7 @@ column_T_name, column_r_name = get_column_names(
 # Choosing fitting range of p parameter
 p_list = p_steps_f(p_step, p_range_min, p_range_max)
 
-# Calculator Arrhenius
+# Calculate Arrhenius method
 data_arrhenius, r2_table, list_arr_params = calculate_arrhenius(
     data,
     loaded_files,
@@ -66,7 +66,7 @@ saved_files = save_arrhenius(
     list_arr_params,
 )
 
-# Calculator DAE
+# Calculate DAE method
 (
     data_dae,
     list_p_optimal,

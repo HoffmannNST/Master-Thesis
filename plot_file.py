@@ -115,7 +115,7 @@ def make_plot_call(
         y_data = temporary_data["DAE"]
         y_fit = temporary_data["aX^b fit"]
         sub_label = "fit aX$^{b}$: a=%5.5f, b=%5.4f" % tuple(p_optimal)
-        sub_label += " R$^{2}$:%5.3f" % r2_score
+        sub_label += ", R$^{2}$:%5.3f" % r2_score
         file_path = save_directory + "/dae_fit_" + item + ".png"
         make_plot_function(
             x_data,

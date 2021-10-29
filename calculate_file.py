@@ -108,6 +108,7 @@ def calculate_arrhenius(
                 )
                 del p_value
                 del standard_error
+                # Do not calculate for p = 0 (because of division by 0)
                 if p > -0.0001 and p < 0.0001:
                     r2_list.append(None)
                     t0_list.append(None)
@@ -254,7 +255,7 @@ def calculate_dae(data, loaded_files, column_t_name, column_r_name):
                 p_param_dae = 1 - slope
             else:
                 p_param_dae = slope - 1
-            t0_param_dae = fit_param_a / p_param_dae * kb_const
+            t0_param_dae = (10 ** intercept) / (p_param_dae * kb_const)
             t0_param_dae = t0_param_dae ** (1 / p_param_dae)
 
             list_dae_params.append(tuple((p_param_dae, t0_param_dae)))

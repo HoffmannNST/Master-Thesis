@@ -5,6 +5,7 @@
 import pathlib
 import yaml
 import pandas as pd
+from yaml.scanner import ScannerError
 
 # Predefined settings
 directories = []
@@ -32,8 +33,12 @@ def read_config():
     try:
         with open("config.yml") as config_file:
             config_data = yaml.load(config_file, Loader=yaml.FullLoader)
-    except:
-        print("! ERROR: Config file does not work !")
+    except FileNotFoundError:
+        print("! FileNotFoundERROR: Config file does not work !")
+    except ScannerError:
+        print(
+            "! ScannerERROR: Config file does not work !\n! Make sure to use / insted of \ !"
+        )
 
     read_directory = config_data["read_directory"]
     data_file_format = config_data["data_file_format"]
@@ -67,25 +72,10 @@ def import_file(read_directory, data_file_format, delimeter, decimal_separator):
         data (list): list of DataFrames of raw data
         loaded_files (list): list of names of files imported to program
     """
-
-    # directory = input("\nSpecify folder path (i.e. C:/Data): ")
-    # if directory == "":
-    #    directory = "./Data"
-
     if pathlib.Path(read_directory).exists():
         directories_list = list(
             pathlib.Path(read_directory).glob("*" + data_file_format)
         )
-
-        # delimeter = input("\nSpecify columns separator (i.e. symbols [, ; .] or tab): ")
-        # if delimeter in ("", "tab"):
-        #    delimeter = "\t"
-
-        # decimal_separator = input(
-        #    "Specify decimal separator in the files: "
-        # )  # '.' or ','
-        # if decimal_separator == "":
-        #    decimal_separator = ","
 
         for item in directories_list:
             if pathlib.Path(item).exists():
