@@ -94,12 +94,15 @@ make_plot_call(
     data,
     loaded_files,
     data_dae,
+    data_arrhenius,
     r2_table,
     list_p_optimal,
     column_T_name,
     column_r_name,
     save_directory,
     list_dae_r2_score,
+    list_dae_regress,
+    list_arr_params,
 )
 
 input("\nPRESS ENTER TO EXIT SUMMARY...")  # to be removed - helps with testing

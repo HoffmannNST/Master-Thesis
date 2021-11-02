@@ -50,12 +50,15 @@ def make_plot_call(
     data,
     loaded_files,
     data_dae,
+    data_arrhenius,
     r2_table,
     list_p_optimal,
     column_t_name,
     column_r_name,
     save_directory,
     list_dae_r2_score,
+    list_dae_regress,
+    list_arr_params,
 ):
     """Function that makes passes data to make_plot_fuinction.
 
@@ -63,15 +66,21 @@ def make_plot_call(
         data (list): list of DataFrames of raw data
         loaded_files (list): list of names of files imported to program
         data_dae (list): list of DataFrames of calculted data
+        data_arrhenius (list): list of DataFrames with calculated data for each impoted file
         r2_table (pandas.DataFrame): table of R^2 (cube of pearson coeficient) values
         list_p_optimal (list): list of tuples of optimal parameters 'a' and 'b' in a*X^b fit
         column_t_name (str): name of column containing temperature data
         column_r_name (str): name of column containing resistance data
         save_directory (str): directory of saved files
         list_dae_r2_score (list): list of R^2 values of fitting a*X^b
+        list_dae_regress (list): list of tuples of best fitting parameters of linear
+            reggresion with R^2 parameter
+        list_arr_params (list): list of tuples of final calculated values in Arrhenius method (p, T0, R0)
     """
     save_directory += "/Plots"
     pathlib.Path(save_directory).mkdir(parents=True, exist_ok=True)
+    for count, item in enumerate(loaded_files):
+        pathlib.Path(save_directory + "/" + item).mkdir(parents=True, exist_ok=True)
     print("\nPlots saved:")
     file_count = 0
 
@@ -79,7 +88,7 @@ def make_plot_call(
     x_data = r2_table.iloc[:, 0]
     for count, item in enumerate(loaded_files, 1):
         y_data = r2_table.iloc[:, count]
-        file_path = save_directory + "/r2_arr_" + item + ".png"
+        file_path = save_directory + "/" + item + "/r2_arr_" + item + ".png"
         make_plot_function(
             x_data,
             y_data,
@@ -99,9 +108,34 @@ def make_plot_call(
         temporary_data = data[count]
         x_data = temporary_data[column_t_name]
         y_data = temporary_data[column_r_name]
-        file_path = save_directory + "/RT_" + item + ".png"
+        file_path = save_directory + "/" + item + "/RT_raw" + item + ".png"
         make_plot_function(
             x_data, y_data, "T [Kelvin]", "R [Ohm]", item, "R(T)", file_path, None, None
+        )
+        file_count += 1
+        print(file_count, file_path)
+
+    # Plot raw data R(T) with Arrhenius fit
+    for count, item in enumerate(loaded_files, 0):
+        temporary_data = data_arrhenius[count]
+        optimal_params = list_arr_params[count]
+        x_data = temporary_data[column_t_name]
+        y_data = temporary_data[column_r_name]
+        y_fit = temporary_data["R(T) fit"]
+        sub_label = "fit R(T): p=%5.3f, T$_{0}$=%5.2f, R$_{0}$=%5.2f" % tuple(
+            optimal_params
+        )
+        file_path = save_directory + "/" + item + "/RT_fit" + item + ".png"
+        make_plot_function(
+            x_data,
+            y_data,
+            "T [Kelvin]",
+            "R [Ohm]",
+            item,
+            "R(T)",
+            file_path,
+            sub_label,
+            y_fit,
         )
         file_count += 1
         print(file_count, file_path)
@@ -109,14 +143,14 @@ def make_plot_call(
     # Plot DAE(T)
     for count, item in enumerate(loaded_files, 0):
         temporary_data = data_dae[count]
-        p_optimal = list_p_optimal[count]
+        optimal_params = list_p_optimal[count]
         r2_score = list_dae_r2_score[count]
         x_data = temporary_data[column_t_name]
         y_data = temporary_data["DAE"]
         y_fit = temporary_data["aX^b fit"]
-        sub_label = "fit aX$^{b}$: a=%5.5f, b=%5.4f" % tuple(p_optimal)
-        sub_label += ", R$^{2}$:%5.3f" % r2_score
-        file_path = save_directory + "/dae_fit_" + item + ".png"
+        sub_label = "fit aX$^{b}$: a=%5.6f, b=%5.4f" % tuple(optimal_params)
+        sub_label += ", R$^{2}$=%5.3f" % r2_score
+        file_path = save_directory + "/" + item + "/dae_fit_" + item + ".png"
         make_plot_function(
             x_data,
             y_data,
@@ -134,9 +168,12 @@ def make_plot_call(
     # plot log(DAE)
     for count, item in enumerate(loaded_files, 0):
         temporary_data = data_dae[count]
+        optimal_params = list_dae_regress[count]
         x_data = temporary_data["log(a) + b*log(T)"]
         y_data = temporary_data["log(DAE)"]
-        file_path = save_directory + "/dae_log_fit_" + item + ".png"
+        y_fit = temporary_data["aX+b fit"]
+        sub_label = "fit aX+b: a=%5.6f, b=%5.4f, R$^{2}$=%5.3f" % tuple(optimal_params)
+        file_path = save_directory + "/" + item + "/dae_log_fit_" + item + ".png"
         make_plot_function(
             x_data,
             y_data,
@@ -145,8 +182,8 @@ def make_plot_call(
             item,
             "log(DAE) = log(a) + b*log(T)",
             file_path,
-            None,
-            None,
+            sub_label,
+            y_fit,
         )
         file_count += 1
         print(file_count, file_path)

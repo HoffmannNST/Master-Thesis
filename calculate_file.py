@@ -47,6 +47,20 @@ def fit_dae(x, a, b):
     return a * x ** b
 
 
+def fit_linear(x, a, b):
+    """Function model for calculating linear fit
+
+    Args:
+        x (float): Variable that we try to fit
+        a (float): the directional factor
+        b (float): free element
+
+    Returns:
+        float: value of linear fit
+    """
+    return a * x + b
+
+
 def calculate_arrhenius(
     data,
     loaded_files,
@@ -70,10 +84,9 @@ def calculate_arrhenius(
         p_range_max (float): maximal value in range of fitting parameter p
 
     Returns:
-        data_arr (list): list of DataFrames with calculated data for each impoted file
+        data_arrhenius (list): list of DataFrames with calculated data for each impoted file
         r2_table_arr (pandas.DataFrame): table of R^2 (cube of pearson coeficient) values
-        p_list (list): list of p parameter within set range with set step
-        p_step (float): increment of p parameter
+        list_arr_params (list): list of tuples of final calculated values in Arrhenius method (p, T0, R0)
     """
     data_arrhenius = list(data)
 
@@ -100,7 +113,7 @@ def calculate_arrhenius(
             r0_list = []
 
             for p in np.arange(p_range_min + p_step, p_range_max + p_step, p_step):
-                column_p_name = "p = " + str(round(p, 3))
+                column_p_name = "1/T^(" + str(round(p, 3)) + ")"
                 new_data[column_p_name] = 1 / (new_data[column_t_name] ** p)
                 x_data = new_data[column_p_name]
                 slope, intercept, r_value, p_value, standard_error = stats.linregress(
@@ -139,6 +152,15 @@ def calculate_arrhenius(
                 "\t%s. max R^2 = %.4f for p = %.2f, parameters T0 = %.2f, R0 = %.2f, for data %s"
                 % (i + 1, max_r2, arr_param_p, arr_param_t0, arr_param_r0, j)
             )
+
+        for count, item in enumerate(loaded_files, 0):
+            temporary_data = data_arrhenius[count]
+            arr_params = list_arr_params[count]
+            arr_param_p, arr_param_t0, arr_param_r0 = tuple(arr_params)
+            temporary_data["R(T) fit"] = arr_param_r0 * np.exp(1) ** (
+                (arr_param_t0 / temporary_data[column_t_name]) ** arr_param_p
+            )
+            data_arrhenius[count] = temporary_data
 
         return data_arrhenius, r2_table_arrhenius, list_arr_params
 
@@ -240,8 +262,8 @@ def calculate_dae(data, loaded_files, column_t_name, column_r_name):
                 new_data[column_t_name]
             )
 
-            x_log = new_data["log(DAE)"]
-            y_log = new_data["log(a) + b*log(T)"]
+            x_log = new_data["log(a) + b*log(T)"]
+            y_log = new_data["log(DAE)"]
 
             slope, intercept, r_value, p_value, standard_error = stats.linregress(
                 x_log, y_log
@@ -249,28 +271,34 @@ def calculate_dae(data, loaded_files, column_t_name, column_r_name):
             del p_value
             del standard_error
 
+            y_fit = fit_linear(x_log, slope, intercept)
+            new_data["aX+b fit"] = y_fit
+
             list_dae_regress.append(tuple((slope, intercept, r_value ** 2)))
 
-            if slope < 1:
-                p_param_dae = 1 - slope
+            p_param_dae = 1 - slope
+            if p_param_dae > 0:
+                t0_param_dae = (10 ** intercept) / (p_param_dae * kb_const)
+                t0_param_dae = t0_param_dae ** (1 / p_param_dae)
             else:
-                p_param_dae = slope - 1
-            t0_param_dae = (10 ** intercept) / (p_param_dae * kb_const)
-            t0_param_dae = t0_param_dae ** (1 / p_param_dae)
+                p_param_dae_positive = p_param_dae * (-1)
+                t0_param_dae = (10 ** intercept) / (p_param_dae_positive * kb_const)
+                t0_param_dae = t0_param_dae ** (1 / p_param_dae)
 
             list_dae_params.append(tuple((p_param_dae, t0_param_dae)))
 
             print(str(count + 1), ". For data: " + item)
             print(
-                "\tOptimal values of fitting a*X^b: \n\t\ta=%s, b=%s" % tuple(p_optimal)
+                "\tOptimal values of fitting a*X^b: \n\t\ta= %s, b= %s"
+                % tuple(p_optimal)
             )
-            print("\t\tR^2:", dae_r2_score)
+            print("\t\tR^2= ", dae_r2_score)
 
             print("\tLinear regression parameters for log(DAE) = log(a) + b*log(T): ")
-            print("\t\ta': %s, b': %s, R^2: %s" % (slope, intercept, r_value ** 2))
+            print("\t\ta'= %s, b'= %s, R^2= %s" % (slope, intercept, (r_value ** 2)))
 
             print("\tFinal calcualted values:")
-            print("\t\tp = %s, parameter T0 = %s\n" % (p_param_dae, t0_param_dae))
+            print("\t\tp= %s, parameter T0= %s\n" % (p_param_dae, t0_param_dae))
 
             data_dae[count] = new_data
         return (

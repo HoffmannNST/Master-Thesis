@@ -36,9 +36,8 @@ def read_config():
     except FileNotFoundError:
         print("! FileNotFoundERROR: Config file does not work !")
     except ScannerError:
-        print(
-            "! ScannerERROR: Config file does not work !\n! Make sure to use / insted of \ !"
-        )
+        print("! ScannerERROR: Config file does not work !")
+        print(r"! Make sure to use / insted of \ !")
 
     read_directory = config_data["read_directory"]
     data_file_format = config_data["data_file_format"]
