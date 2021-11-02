@@ -1,10 +1,40 @@
-read_directory: "./Data"
+# Directory of FOLDER of R(T) data to be calcualted, program checks all files within this folder.
+# Directory needs to be in double quotes e.g. "C:/Users/Data", use right slashes (/) only!
+read_directory: "C:/Users/Data"
+
+# Format of R(T) data files, program supports text formats like .csv or .txt
+# Format needs to be in double quotes with dot before text e.g. ".csv"
 data_file_format: ".txt"
-save_directory: "./Results"
+
+# Directory of FOLDER where calculated data and plots should be saved.
+# Directory needs to be in double quotes e.g. "C:/Users/Data", use right slashes (/) only!
+save_directory: "C:/Users/Results"
+
+# Delimeter is a column separator symbol. Program supports all characters like ";", ".", "|", "," etc. To use tab separator e.g. in .tsv format use "\t".
+# Delimeter symbol needs to be in double quotes e.g. ";".
 delimeter: "\t"
+
+# Decimal separator is character to recognize as decimal point e.g. "," for european data or "." for american data. Program also supports other characters set by user.
+# Decimal separator needs to be in double quotes e.g. ",".
 decimal_separator: ","
+
+# colmun_t_index is an index of column containing temperature (T) data in the R(T) data files. Counting indexes starts with 0 for the most left column.
+# colmun_t_index cannot be in double quotes as it is integer value. 
 column_t_index: 0
+
+# colmun_r_index is an index of column containing resistance (R) data in the R(T) data files. Counting indexes starts with 0 for the most left column.
+# colmun_r_index cannot be in double quotes as it is integer value. 
 column_r_index: 1
+
+# p_range_min is the lower limit of the range of fitting "p" parameter. Program supports negative and fraction values. This value must be lower than p_range_max value.
+# p_range_min cannot be in double quotes as it is integer value. 
 p_range_min: -1
+
+# p_range_max is the higher limit of the range of fitting "p" parameter. Program supports negative and fraction values. This value must be higher than p_range_min value.
+# p_range_max cannot be in double quotes as it is integer value. 
 p_range_max: 1
+
+# p_step is the step of fitting "p" parameter in (p_range_min, p_range_max) range, e.g. if p_step: 0.5 for range (0,1), the "p" parameter will be fit for values {0, 0.5, 1}.
+# p_step needs to be positive number. p_step can be a fraction. 
+# p_step cannot be in double quotes as it is integer value. 
 p_step: 0.05
