@@ -86,7 +86,8 @@ def calculate_arrhenius(
     Returns:
         data_arrhenius (list): list of DataFrames with calculated data for each impoted file
         r2_table_arr (pandas.DataFrame): table of R^2 (cube of pearson coeficient) values
-        list_arr_params (list): list of tuples of final calculated values in Arrhenius method (p, T0, R0)
+        list_arr_params (list): list of tuples of final calculated values in Arrhenius method
+            (p, T0, R0)
     """
     data_arrhenius = list(data)
 
@@ -128,9 +129,11 @@ def calculate_arrhenius(
                     r0_list.append(None)
                     continue
                 r2_list.append(r_value ** 2)
-                if slope < 0:
-                    slope *= -1
-                t0_list.append(slope ** (1 / p))
+                slope *= -1
+                if slope > 0:
+                    t0_list.append(slope ** (1 / p))
+                else:
+                    t0_list.append(np.NaN)
                 r0_list.append(exp(-intercept))
 
             r2_table_arrhenius[item] = r2_list
@@ -139,18 +142,18 @@ def calculate_arrhenius(
             data_arrhenius[count] = new_data
 
         print("\nFROM ARRHENIUS METHOD:\nMax values of R^2(p):")
-        for i, j in enumerate(loaded_files):
-            index_p = r2_table_arrhenius[j].idxmax()
-            max_r2 = r2_table_arrhenius.iloc[index_p, i + 1]
+        for count, item in enumerate(loaded_files):
+            index_p = r2_table_arrhenius[item].idxmax()
+            max_r2 = r2_table_arrhenius.iloc[index_p, count + 1]
             arr_param_p = r2_table_arrhenius.iloc[index_p, 0]
-            arr_param_t0 = t0_table_arrhenius.iloc[index_p, i + 1]
-            arr_param_r0 = r0_table_arrhenius.iloc[index_p, i + 1]
+            arr_param_t0 = t0_table_arrhenius.iloc[index_p, count + 1]
+            arr_param_r0 = r0_table_arrhenius.iloc[index_p, count + 1]
 
             list_arr_params.append(tuple((arr_param_p, arr_param_t0, arr_param_r0)))
 
             print(
-                "\t%s. max R^2 = %.4f for p = %.2f, parameters T0 = %.2f, R0 = %.2f, for data %s"
-                % (i + 1, max_r2, arr_param_p, arr_param_t0, arr_param_r0, j)
+                "\t%s. max R^2 = %.4f for p = %s, parameters T0 = %s, R0 = %s, for data %s"
+                % (count + 1, max_r2, arr_param_p, arr_param_t0, arr_param_r0, item)
             )
 
         for count, item in enumerate(loaded_files, 0):
@@ -276,13 +279,14 @@ def calculate_dae(data, loaded_files, column_t_name, column_r_name):
 
             list_dae_regress.append(tuple((slope, intercept, r_value ** 2)))
 
-            p_param_dae = 1 - slope
+            a_optimal, b_optimal = tuple(p_optimal)
+            p_param_dae = 1 - b_optimal
             if p_param_dae > 0:
-                t0_param_dae = (10 ** intercept) / (p_param_dae * kb_const)
+                t0_param_dae = a_optimal / (p_param_dae * kb_const)
                 t0_param_dae = t0_param_dae ** (1 / p_param_dae)
             else:
                 p_param_dae_positive = p_param_dae * (-1)
-                t0_param_dae = (10 ** intercept) / (p_param_dae_positive * kb_const)
+                t0_param_dae = a_optimal / (p_param_dae_positive * kb_const)
                 t0_param_dae = t0_param_dae ** (1 / p_param_dae)
 
             list_dae_params.append(tuple((p_param_dae, t0_param_dae)))

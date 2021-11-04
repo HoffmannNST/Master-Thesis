@@ -28,6 +28,13 @@ def read_config():
         p_range_min (float): minimal value in range of fitting parameter p
         p_range_max (float): maximal value in range of fitting parameter p
         p_step (float): increment of p parameter
+        simulation (boolean): True if user wants simulation to occur
+        simulate_t_min (float): the lower limit of the range of temperature
+        simulate_t_max (float): the higher limit of the range of temperature
+        simulate_t_step (float): the step of temperature
+        simulate_r0_param (float): value of R0 parameter
+        simulate_t0_param (float): value of T0 parameter
+        simulate_p_param (float): value of p parameter
     """
 
     try:
@@ -49,6 +56,13 @@ def read_config():
     p_range_min = config_data["p_range_min"]
     p_range_max = config_data["p_range_max"]
     p_step = config_data["p_step"]
+    simulation = config_data["simulation"]
+    simulate_t_min = config_data["simulate_t_min"]
+    simulate_t_max = config_data["simulate_t_max"]
+    simulate_t_step = config_data["simulate_t_step"]
+    simulate_r0_param = config_data["simulate_r0_param"]
+    simulate_t0_param = config_data["simulate_t0_param"]
+    simulate_p_param = config_data["simulate_p_param"]
 
     return (
         read_directory,
@@ -61,6 +75,13 @@ def read_config():
         p_range_min,
         p_range_max,
         p_step,
+        simulation,
+        simulate_t_min,
+        simulate_t_max,
+        simulate_t_step,
+        simulate_r0_param,
+        simulate_t0_param,
+        simulate_p_param,
     )
 
 

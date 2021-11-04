@@ -4,6 +4,8 @@
 # Import packages
 import pathlib
 import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
 
 # FUNCTIONS
 def make_plot_function(
@@ -11,6 +13,7 @@ def make_plot_function(
     y_data,
     x_label,
     y_label,
+    main_label,
     data_file,
     plot_subtitle,
     plot_file_path,
@@ -24,6 +27,7 @@ def make_plot_function(
         y_data (list): data for Y axis
         x_label (str): label of X axis
         y_label (str): label of Y axis
+        main_label (str): main plot legend label
         data_file (str): name of file with data
         plot_subtitle (str): plot subtitle
         plot_file_path (str): save path ending with plot name
@@ -31,7 +35,9 @@ def make_plot_function(
         sub_y_data (list): fitting data in DAE method
     """
     try:
-        plt.scatter(x_data, y_data)
+        plt.scatter(x_data, y_data, label=main_label)
+        if main_label:
+            plt.legend()
         if sub_label:
             plt.plot(x_data, sub_y_data, label=sub_label)
             plt.legend()
@@ -75,7 +81,8 @@ def make_plot_call(
         list_dae_r2_score (list): list of R^2 values of fitting a*X^b
         list_dae_regress (list): list of tuples of best fitting parameters of linear
             reggresion with R^2 parameter
-        list_arr_params (list): list of tuples of final calculated values in Arrhenius method (p, T0, R0)
+        list_arr_params (list): list of tuples of final calculated values in Arrhenius method
+            (p, T0, R0)
     """
     save_directory += "/Plots"
     pathlib.Path(save_directory).mkdir(parents=True, exist_ok=True)
@@ -94,6 +101,7 @@ def make_plot_call(
             y_data,
             "p",
             "R$^{2}$",
+            None,
             item,
             "Arrhenius R$^{2}$(p)",
             file_path,
@@ -110,7 +118,16 @@ def make_plot_call(
         y_data = temporary_data[column_r_name]
         file_path = save_directory + "/" + item + "/RT_raw" + item + ".png"
         make_plot_function(
-            x_data, y_data, "T [Kelvin]", "R [Ohm]", item, "R(T)", file_path, None, None
+            x_data,
+            y_data,
+            "T [Kelvin]",
+            "R [Ohm]",
+            None,
+            item,
+            "R(T)",
+            file_path,
+            None,
+            None,
         )
         file_count += 1
         print(file_count, file_path)
@@ -122,8 +139,9 @@ def make_plot_call(
         x_data = temporary_data[column_t_name]
         y_data = temporary_data[column_r_name]
         y_fit = temporary_data["R(T) fit"]
-        sub_label = "fit R(T): p=%5.3f, T$_{0}$=%5.2f, R$_{0}$=%5.2f" % tuple(
-            optimal_params
+        p_param, t0_param, r0_param = tuple(optimal_params)
+        sub_label = "fit R(T): p={}, T$_0$={:.2e}, R$_0$={:.2e}".format(
+            p_param, t0_param, r0_param
         )
         file_path = save_directory + "/" + item + "/RT_fit" + item + ".png"
         make_plot_function(
@@ -131,6 +149,7 @@ def make_plot_call(
             y_data,
             "T [Kelvin]",
             "R [Ohm]",
+            None,
             item,
             "R(T)",
             file_path,
@@ -148,14 +167,16 @@ def make_plot_call(
         x_data = temporary_data[column_t_name]
         y_data = temporary_data["DAE"]
         y_fit = temporary_data["aX^b fit"]
-        sub_label = "fit aX$^{b}$: a=%5.6f, b=%5.4f" % tuple(optimal_params)
-        sub_label += ", R$^{2}$=%5.3f" % r2_score
+        a_param, b_param = tuple(optimal_params)
+        sub_label = "fit aX$^b$: a={:.2e}, b={:.2e}".format(a_param, b_param)
+        sub_label += ", R$^2$=%.3f" % r2_score
         file_path = save_directory + "/" + item + "/dae_fit_" + item + ".png"
         make_plot_function(
             x_data,
             y_data,
             "T [Kelvin]",
             "DAE [eV]",
+            None,
             item,
             "DAE(T)",
             file_path,
@@ -172,13 +193,17 @@ def make_plot_call(
         x_data = temporary_data["log(a) + b*log(T)"]
         y_data = temporary_data["log(DAE)"]
         y_fit = temporary_data["aX+b fit"]
-        sub_label = "fit aX+b: a=%5.6f, b=%5.4f, R$^{2}$=%5.3f" % tuple(optimal_params)
+        a_param, b_param, r2_param = tuple(optimal_params)
+        sub_label = "fit aX+b: a={:.2e}, b={:.2e}, R$^2$={:.3f}".format(
+            a_param, b_param, r2_param
+        )
         file_path = save_directory + "/" + item + "/dae_log_fit_" + item + ".png"
         make_plot_function(
             x_data,
             y_data,
             "log(a) + b*log(T)",
             "log(DAE)",
+            None,
             item,
             "log(DAE) = log(a) + b*log(T)",
             file_path,
@@ -187,6 +212,60 @@ def make_plot_call(
         )
         file_count += 1
         print(file_count, file_path)
+
+
+def simulate_r_t(
+    simulate_t_min,
+    simulate_t_max,
+    simulate_t_step,
+    simulate_r0_param,
+    simulate_t0_param,
+    simulate_p_param,
+    save_directory,
+):
+    """Function for symulating data based on user's parameters
+
+    Args:
+        simulate_t_min (float): the lower limit of the range of temperature
+        simulate_t_max (float): the higher limit of the range of temperature
+        simulate_t_step (float): the step of temperature
+        simulate_r0_param (float): value of R0 parameter
+        simulate_t0_param (float): value of T0 parameter
+        simulate_p_param (float): value of p parameter
+        save_directory (str): directory of saved files
+    """
+    temperature_list = []
+    for temperature in range(
+        simulate_t_min, simulate_t_max + simulate_t_step, simulate_t_step
+    ):
+        temperature_list.append(temperature)
+    simulate_data = pd.DataFrame(temperature_list, columns=["Temperature"])
+    simulate_data["Resistance"] = simulate_r0_param * np.exp(1) ** (
+        (simulate_t0_param / simulate_data["Temperature"]) ** simulate_p_param
+    )
+
+    main_label = "simulation: R$_0$={:.2e}, T$_0$={:.2e}, p={}".format(
+        simulate_r0_param, simulate_t0_param, simulate_p_param
+    )
+
+    save_directory += "/Plots"
+    pathlib.Path(save_directory).mkdir(parents=True, exist_ok=True)
+    save_directory += "/simulation_R(T).png"
+
+    print("Saving simulation plot R(T):\n0 ", save_directory)
+
+    make_plot_function(
+        simulate_data["Temperature"],
+        simulate_data["Resistance"],
+        "Temperature",
+        "Resistance",
+        main_label,
+        "simulation",
+        "R(T)",
+        save_directory,
+        None,
+        None,
+    )
 
 
 if __name__ == "__main__":

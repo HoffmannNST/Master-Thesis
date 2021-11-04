@@ -5,7 +5,7 @@
 from read_file import import_file, get_column_names, read_config
 from calculate_file import calculate_arrhenius, calculate_dae, p_steps_f
 from write_file import save_arrhenius, save_dae
-from plot_file import make_plot_call
+from plot_file import make_plot_call, simulate_r_t
 
 # START XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # Welcome message
@@ -23,6 +23,13 @@ print("\nWelcome to program!")
     p_range_min,
     p_range_max,
     p_step,
+    simulate,
+    simulate_t_min,
+    simulate_t_max,
+    simulate_t_step,
+    simulate_r0_param,
+    simulate_t0_param,
+    simulate_p_param,
 ) = read_config()
 
 # Import file
@@ -104,5 +111,17 @@ make_plot_call(
     list_dae_regress,
     list_arr_params,
 )
+
+# Simulate R(T) data using user's parameters
+if simulate:
+    simulate_r_t(
+        simulate_t_min,
+        simulate_t_max,
+        simulate_t_step,
+        simulate_r0_param,
+        simulate_t0_param,
+        simulate_p_param,
+        save_directory,
+    )
 
 input("\nPRESS ENTER TO EXIT SUMMARY...")  # to be removed - helps with testing
