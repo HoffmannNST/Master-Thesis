@@ -8,33 +8,54 @@ data_file_format: ".txt"
 
 # Directory of FOLDER where calculated data and plots should be saved.
 # Directory needs to be in double quotes e.g. "C:/Users/Data", use right slashes (/) only!
-save_directory: "C:/Users/Results"
+save_directory: "C:/Users/Data"
 
 # Delimeter is a column separator symbol. Program supports all characters like ";", ".", "|", "," etc. To use tab separator e.g. in .tsv format use "\t".
 # Delimeter symbol needs to be in double quotes e.g. ";".
 delimeter: "\t"
 
-# Decimal separator is character to recognize as decimal point e.g. "," for european data or "." for american data. Program also supports other characters set by user.
+# Decimal separator for input data is character to recognize as decimal point e.g. "," for european data or "." for american data. Program also supports other characters set by user.
 # Decimal separator needs to be in double quotes e.g. ",".
-decimal_separator: ","
+decimal_separator: "."
 
 # colmun_t_index is an index of column containing temperature (T) data in the R(T) data files. Counting indexes starts with 0 for the most left column.
-# colmun_t_index cannot be in double quotes as it is integer value. 
 column_t_index: 0
 
 # colmun_r_index is an index of column containing resistance (R) data in the R(T) data files. Counting indexes starts with 0 for the most left column.
-# colmun_r_index cannot be in double quotes as it is integer value. 
 column_r_index: 1
 
 # p_range_min is the lower limit of the range of fitting "p" parameter. Program supports negative and fraction values. This value must be lower than p_range_max value.
-# p_range_min cannot be in double quotes as it is integer value. 
-p_range_min: -1
+# For negative values of p parameter the fitting may produce wrong values due to not fitting model of conduction.
+p_range_min: 0
 
 # p_range_max is the higher limit of the range of fitting "p" parameter. Program supports negative and fraction values. This value must be higher than p_range_min value.
-# p_range_max cannot be in double quotes as it is integer value. 
 p_range_max: 1
 
 # p_step is the step of fitting "p" parameter in (p_range_min, p_range_max) range, e.g. if p_step: 0.5 for range (0,1), the "p" parameter will be fit for values {0, 0.5, 1}.
-# p_step needs to be positive number. p_step can be a fraction. 
-# p_step cannot be in double quotes as it is integer value. 
+# p_step needs to be positive number. p_step can be a fraction.
 p_step: 0.05
+
+# simulation parameter checks if user wants to create simulation plot R(T). Program checks if simulation has a value, if so program will simulate R(T) plot.
+# simulation will not run if value is False or has no value. Simulation will run if this parameter has a value (e.g. True, "x", 0).
+simulation: True
+
+# simulate_t_min is the lower limit of the range of temperature to be simulated. This value must be lower than simulate_t_max value
+# simulate_t_min needs to be positive number.
+simulate_t_min: 20
+
+# simulate_t_max is the lower limit of the range of temperature to be simulated. This value must be higher than simulate_t_min value
+# simulate_t_max needs to be positive number.
+simulate_t_max: 300
+
+# simulate_t_step is the step temperature in (simulate_t_min, simulate_t_max) range.
+# simulate_t_step needs to be positive number.
+simulate_t_step: 5
+
+# R0 parameter used for simulating R(T) data, can be a fraction.
+simulate_r0_param: 7766623.502448477
+
+# T0 parameter used for simulating R(T) data, can be a fraction.
+simulate_t0_param: 7.478685655712339e-13
+
+# p parameter used for simulating R(T) data, can be a fraction.
+simulate_p_param: -0.05
