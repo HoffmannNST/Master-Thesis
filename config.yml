@@ -26,18 +26,23 @@ column_r_index: 1
 
 # p_range_min is the lower limit of the range of fitting "p" parameter. Program supports negative and fraction values. This value must be lower than p_range_max value.
 # For negative values of p parameter the fitting may produce wrong values due to not fitting model of conduction.
-p_range_min: 0
+p_range_min: 0.2
 
 # p_range_max is the higher limit of the range of fitting "p" parameter. Program supports negative and fraction values. This value must be higher than p_range_min value.
-p_range_max: 1
+p_range_max: 0.75
 
 # p_step is the step of fitting "p" parameter in (p_range_min, p_range_max) range, e.g. if p_step: 0.5 for range (0,1), the "p" parameter will be fit for values {0, 0.5, 1}.
-# p_step needs to be positive number. p_step can be a fraction.
+# p_step needs to be positive number. p_step can be a decimal fraction.
 p_step: 0.05
+
+# list of theoretical p values to calculate T0, R0 parameters with and then plot DAE(T) with Arrhenius fits using those values.
+# The lists's elements can have negative values and can be decimal fractions. Decimal separator needs to be dot "."
+# List needs to be in square brackets and elements of the list need to be separated with comma e.g. [0.1, 0.05, -0.1, 2, 0.33333].
+theoretical_p_list: [0.5, 0.333333, 0.25, 0.666666, 0.4, 0.75, 0.6]
 
 # simulation parameter checks if user wants to create simulation plot R(T). Program checks if simulation has a value, if so program will simulate R(T) plot.
 # simulation will not run if value is False or has no value. Simulation will run if this parameter has a value (e.g. True, "x", 0).
-simulation: True
+simulation: False
 
 # simulate_t_min is the lower limit of the range of temperature to be simulated. This value must be lower than simulate_t_max value
 # simulate_t_min needs to be positive number.
@@ -52,10 +57,10 @@ simulate_t_max: 300
 simulate_t_step: 5
 
 # R0 parameter used for simulating R(T) data, can be a fraction.
-simulate_r0_param: 7766623.502448477
+simulate_r0_param: 10000
 
 # T0 parameter used for simulating R(T) data, can be a fraction.
-simulate_t0_param: 7.478685655712339e-13
+simulate_t0_param: 25
 
 # p parameter used for simulating R(T) data, can be a fraction.
-simulate_p_param: -0.05
+simulate_p_param: 0.65

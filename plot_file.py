@@ -6,6 +6,8 @@ import pathlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+from scipy import stats, constants
+from calculate_file import fit_linear
 
 # FUNCTIONS
 def make_plot_function(
@@ -83,13 +85,16 @@ def make_plot_call(
             reggresion with R^2 parameter
         list_arr_params (list): list of tuples of final calculated values in Arrhenius method
             (p, T0, R0)
+
+    Returns:
+        plot_file_count (int): counter of all saved plots
     """
     save_directory += "/Plots"
     pathlib.Path(save_directory).mkdir(parents=True, exist_ok=True)
     for count, item in enumerate(loaded_files):
         pathlib.Path(save_directory + "/" + item).mkdir(parents=True, exist_ok=True)
     print("\nPlots saved:")
-    file_count = 0
+    plot_file_count = 0
 
     # Plot R^2(p) from Arrhenius
     x_data = r2_table.iloc[:, 0]
@@ -108,20 +113,20 @@ def make_plot_call(
             None,
             None,
         )
-        file_count += 1
-        print(file_count, file_path)
+        plot_file_count += 1
+        print(plot_file_count, file_path)
 
     # Plot raw data R(T)
     for count, item in enumerate(loaded_files, 0):
         temporary_data = data[count]
         x_data = temporary_data[column_t_name]
         y_data = temporary_data[column_r_name]
-        file_path = save_directory + "/" + item + "/RT_raw" + item + ".png"
+        file_path = save_directory + "/" + item + "/RT_raw_" + item + ".png"
         make_plot_function(
             x_data,
             y_data,
-            "T [Kelvin]",
-            "R [Ohm]",
+            "Temperature [K]",
+            "Resistance [$\Omega$]",
             None,
             item,
             "R(T)",
@@ -129,26 +134,26 @@ def make_plot_call(
             None,
             None,
         )
-        file_count += 1
-        print(file_count, file_path)
+        plot_file_count += 1
+        print(plot_file_count, file_path)
 
     # Plot raw data R(T) with Arrhenius fit
     for count, item in enumerate(loaded_files, 0):
         temporary_data = data_arrhenius[count]
         optimal_params = list_arr_params[count]
+        p_param, t0_param, r0_param = tuple(optimal_params)
         x_data = temporary_data[column_t_name]
         y_data = temporary_data[column_r_name]
         y_fit = temporary_data["R(T) fit"]
-        p_param, t0_param, r0_param = tuple(optimal_params)
         sub_label = "fit R(T): p={}, T$_0$={:.2e}, R$_0$={:.2e}".format(
             p_param, t0_param, r0_param
         )
-        file_path = save_directory + "/" + item + "/RT_fit" + item + ".png"
+        file_path = save_directory + "/" + item + "/RT_fit_" + item + ".png"
         make_plot_function(
             x_data,
             y_data,
-            "T [Kelvin]",
-            "R [Ohm]",
+            "Temperature [K]",
+            "Resistance [$\Omega$]",
             None,
             item,
             "R(T)",
@@ -156,25 +161,25 @@ def make_plot_call(
             sub_label,
             y_fit,
         )
-        file_count += 1
-        print(file_count, file_path)
+        plot_file_count += 1
+        print(plot_file_count, file_path)
 
     # Plot DAE(T)
     for count, item in enumerate(loaded_files, 0):
         temporary_data = data_dae[count]
         optimal_params = list_p_optimal[count]
+        a_param, b_param = tuple(optimal_params)
         r2_score = list_dae_r2_score[count]
         x_data = temporary_data[column_t_name]
         y_data = temporary_data["DAE"]
         y_fit = temporary_data["aX^b fit"]
-        a_param, b_param = tuple(optimal_params)
         sub_label = "fit aX$^b$: a={:.2e}, b={:.2e}".format(a_param, b_param)
         sub_label += ", R$^2$=%.3f" % r2_score
         file_path = save_directory + "/" + item + "/dae_fit_" + item + ".png"
         make_plot_function(
             x_data,
             y_data,
-            "T [Kelvin]",
+            "Temperature [K]",
             "DAE [eV]",
             None,
             item,
@@ -183,14 +188,42 @@ def make_plot_call(
             sub_label,
             y_fit,
         )
-        file_count += 1
-        print(file_count, file_path)
+        plot_file_count += 1
+        print(plot_file_count, file_path)
+
+    # Plot DAE(T) with Arrhenius fit
+    kb_const = constants.value("Boltzmann constant in eV/K")
+    for count, item in enumerate(loaded_files, 0):
+        temporary_data = data_dae[count]
+        optimal_params = list_arr_params[count]
+        p_param, t0_param, _ = tuple(optimal_params)
+        x_data = temporary_data[column_t_name]
+        y_data = temporary_data["DAE"]
+        y_fit = (p_param * kb_const * (t0_param ** p_param)) * (
+            temporary_data[column_t_name] ** (1 - p_param)
+        )
+        sub_label = "fit from Arrhenius: p={}, T$_0$={:.2e}".format(p_param, t0_param)
+        file_path = save_directory + "/" + item + "/dae_fit_arr_" + item + ".png"
+        make_plot_function(
+            x_data,
+            y_data,
+            "Temperature [K]",
+            "DAE [eV]",
+            None,
+            item,
+            "DAE(T) fit with p, T$_{0}$ from Arrhenius",
+            file_path,
+            sub_label,
+            y_fit,
+        )
+        plot_file_count += 1
+        print(plot_file_count, file_path)
 
     # plot log(DAE)
     for count, item in enumerate(loaded_files, 0):
         temporary_data = data_dae[count]
         optimal_params = list_dae_regress[count]
-        x_data = temporary_data["log(a) + b*log(T)"]
+        x_data = temporary_data["log(T)"]
         y_data = temporary_data["log(DAE)"]
         y_fit = temporary_data["aX+b fit"]
         a_param, b_param, r2_param = tuple(optimal_params)
@@ -201,17 +234,250 @@ def make_plot_call(
         make_plot_function(
             x_data,
             y_data,
-            "log(a) + b*log(T)",
+            "log(T)",
             "log(DAE)",
             None,
             item,
-            "log(DAE) = log(a) + b*log(T)",
+            "log(DAE) = b' + a'*log(T)",
             file_path,
             sub_label,
             y_fit,
         )
-        file_count += 1
-        print(file_count, file_path)
+        plot_file_count += 1
+        print(plot_file_count, file_path)
+
+    return plot_file_count
+
+
+def plot_theoretical_arrhenius(
+    loaded_files,
+    data_dae,
+    column_t_name,
+    theoretical_p_list,
+    arr_theoretical_params_list,
+    save_directory,
+    plot_file_count,
+):
+    kb_const = constants.value("Boltzmann constant in eV/K")
+    for count, item in enumerate(loaded_files, 0):
+        temporary_data = data_dae[count]
+        arr_theoretical_params_list2 = arr_theoretical_params_list[count]
+        file_path = save_directory + "/Plots"
+        x_data = temporary_data[column_t_name]
+        y_data = temporary_data["DAE"]
+        plt.xlabel("Temperature [K]")
+        plt.ylabel("DAE [eV]")
+        plt.title(
+            item,
+            {"horizontalalignment": "center"},
+        )
+        plt.suptitle("DAE(T) with Arrhenius  p, T$_0$ values fit")
+        plt.scatter(x_data, y_data)
+        for count2, _ in enumerate(theoretical_p_list):
+            arr_theoretical_params_tuple = arr_theoretical_params_list2[count2]
+            p_param, _, t0_param, __ = tuple(arr_theoretical_params_tuple)
+            y_fit = (p_param * kb_const * (t0_param ** p_param)) * (
+                temporary_data[column_t_name] ** (1 - p_param)
+            )
+            sub_label = "p={:.2f}, T$_0$={:.2e}".format(p_param, t0_param)
+            plt.plot(x_data, y_fit, label=sub_label)
+
+        pathlib.Path(file_path).mkdir(parents=True, exist_ok=True)
+        file_path += "/" + item + "/dae_fit_theoretical_" + item + ".png"
+        plt.legend()  # loc="upper right", fontsize="x-small"
+        try:
+            plt.savefig(file_path, dpi=300)
+        except OSError:
+            print(
+                "! OSERROR: Plot dae_fit_theoretical_"
+                + item
+                + ".png couldn't be saved !"
+            )
+        finally:
+            plt.close()
+
+        plot_file_count += 1
+        print(plot_file_count, file_path)
+    return plot_file_count
+
+
+# Plot multiple Arrhenius curves
+def plot_arrhenius(
+    data_arrhenius,
+    loaded_files,
+    list_arr_params,
+    plot_file_count,
+    save_directory,
+):
+    """Function that plots all the Arrhenius plots together
+
+    Args:
+        data_arrhenius (list): list of DataFrames with calculated data for each impoted file
+        loaded_files (list): list of names of files imported to program
+        list_arr_params (list): list of tuples of final calculated values in Arrhenius method
+            (p, T0, R0)
+        plot_file_count (int): counter of all saved plots
+        save_directory (str): directory of saved files
+
+    Returns:
+        plot_file_count (int): counter of all saved plots
+    """
+    plt.xlabel("T$^{-p}$")
+    plt.ylabel("ln(R$^{-1}$)")
+    plt.title("Arrhenius best fits", {"horizontalalignment": "center"})
+    for count, item in enumerate(loaded_files, 0):
+        temporary_data = data_arrhenius[count]
+        arr_params = list_arr_params[count]
+        p_arr_param, _, __ = tuple(arr_params)
+        column_p_name = "1/T^(" + str(round(p_arr_param, 3)) + ")"
+        x_data = temporary_data[column_p_name]
+        y_data = temporary_data["Ln(1/R)"]
+        sub_label = "%s, p=%s" % (item, p_arr_param)
+        plt.scatter(x_data, y_data, label=sub_label)
+
+        slope, intercept, _, __, ___ = stats.linregress(x_data, y_data)
+        y_fit = fit_linear(x_data, slope, intercept)
+        plt.plot(x_data, y_fit)
+
+    save_directory += "/Plots"
+    pathlib.Path(save_directory).mkdir(parents=True, exist_ok=True)
+    save_directory += "/Arrhenius_plots.png"
+    plt.legend()
+    try:
+        plt.savefig(save_directory, dpi=300)
+    except OSError:
+        print("! OSERROR: Plot Arrhenius_plots.png couldn't be saved !")
+    finally:
+        plt.close()
+
+    plot_file_count += 1
+    print(plot_file_count, save_directory)
+    return plot_file_count
+
+
+# Plot raw data R(T)
+def plot_r_t(
+    loaded_files, column_t_name, column_r_name, data, save_directory, plot_file_count
+):
+    """Function that plots all R(T) raw data together
+
+    Args:
+        loaded_files (list): list of names of files imported to program
+        column_t_name (str): name of column containing temperature data
+        column_r_name (str): name of column containing resistance data
+        data (list): list of DataFrames of raw data
+        plot_file_count (int): counter of all saved plots
+        save_directory (str): directory of saved files
+
+    Returns:
+        plot_file_count (int): counter of all saved plots
+    """
+    plt.xlabel("Temperature [K]")
+    plt.ylabel("Resistance [$\Omega$]")
+    plt.title("R(T)", {"horizontalalignment": "center"})
+    for count, item in enumerate(loaded_files, 0):
+        temporary_data = data[count]
+        x_data = temporary_data[column_t_name]
+        y_data = temporary_data[column_r_name]
+        sub_label = "%s" % item
+        plt.scatter(x_data, y_data, label=sub_label)
+
+    save_directory += "/Plots"
+    pathlib.Path(save_directory).mkdir(parents=True, exist_ok=True)
+    save_directory += "/R(T)_plots.png"
+    plt.legend()
+    try:
+        plt.savefig(save_directory, dpi=300)
+    except OSError:
+        print("! OSERROR: Plot R(T)_plots.png couldn't be saved !")
+    finally:
+        plt.close()
+
+    plot_file_count += 1
+    print(plot_file_count, save_directory)
+    return plot_file_count
+
+
+# Plot multiple R^2(p)
+def plot_r2_p(r2_table, loaded_files, save_directory, plot_file_count):
+    """Function that plots all R^2(p) together
+
+    Args:
+        r2_table (pandas.DataFrame): table of R^2 (cube of pearson coeficient) values
+        loaded_files (list): list of names of files imported to program
+        save_directory (str): directory of saved files
+        plot_file_count (int): counter of all saved plots
+
+    Returns:
+        plot_file_count (int): counter of all saved plots
+    """
+    plt.xlabel("p")
+    plt.ylabel("R$^{2}$")
+    plt.title("Arrhenius R$^{2}$(p)", {"horizontalalignment": "center"})
+
+    x_data = r2_table.iloc[:, 0]
+    for count, item in enumerate(loaded_files, 1):
+        y_data = r2_table.iloc[:, count]
+        sub_label = "%s" % item
+        plt.scatter(x_data, y_data, label=sub_label)
+
+    save_directory += "/Plots"
+    pathlib.Path(save_directory).mkdir(parents=True, exist_ok=True)
+    save_directory += "/r2_p_arr.png"
+    plt.legend()
+
+    try:
+        plt.savefig(save_directory, dpi=300)
+    except OSError:
+        print("! OSERROR: Plot r2_p_arr.png couldn't be saved !")
+    finally:
+        plt.close()
+
+    plot_file_count += 1
+    print(plot_file_count, save_directory)
+    return plot_file_count
+
+
+# Plot multiple DAE(T)
+def plot_dae(loaded_files, data_dae, column_t_name, save_directory, plot_file_count):
+    """Function that plots all DAE(T) plots together
+
+    Args:
+        loaded_files (list): list of names of files imported to program
+        data_dae (list): list of DataFrames of calculted data
+        column_t_name (str): name of column containing temperature data
+        save_directory (str): directory of saved files
+        plot_file_count (int): counter of all saved plots
+
+    Returns:
+        plot_file_count (int): counter of all saved plots
+    """
+    plt.xlabel("Temperature [K]")
+    plt.ylabel("DAE [eV]")
+    plt.title("DAE(T)", {"horizontalalignment": "center"})
+
+    for count, item in enumerate(loaded_files, 0):
+        temporary_data = data_dae[count]
+        x_data = temporary_data[column_t_name]
+        y_data = temporary_data["DAE"]
+        sub_label = "%s" % item
+        plt.scatter(x_data, y_data, label=sub_label)
+
+    save_directory += "/Plots"
+    pathlib.Path(save_directory).mkdir(parents=True, exist_ok=True)
+    save_directory += "/dae_t.png"
+    plt.legend()
+
+    try:
+        plt.savefig(save_directory, dpi=300)
+    except OSError:
+        print("! OSERROR: Plot dae_t.png couldn't be saved !")
+    finally:
+        plt.close()
+
+    plot_file_count += 1
+    print(plot_file_count, save_directory)
+    return plot_file_count
 
 
 def simulate_r_t(
@@ -222,6 +488,7 @@ def simulate_r_t(
     simulate_t0_param,
     simulate_p_param,
     save_directory,
+    plot_file_count,
 ):
     """Function for symulating data based on user's parameters
 
@@ -252,13 +519,11 @@ def simulate_r_t(
     pathlib.Path(save_directory).mkdir(parents=True, exist_ok=True)
     save_directory += "/simulation_R(T).png"
 
-    print("Saving simulation plot R(T):\n0 ", save_directory)
-
     make_plot_function(
         simulate_data["Temperature"],
         simulate_data["Resistance"],
-        "Temperature",
-        "Resistance",
+        "Temperature [K]",
+        "Resistance [$\Omega$]",
         main_label,
         "simulation",
         "R(T)",
@@ -266,6 +531,9 @@ def simulate_r_t(
         None,
         None,
     )
+
+    plot_file_count += 1
+    print(plot_file_count, save_directory)
 
 
 if __name__ == "__main__":

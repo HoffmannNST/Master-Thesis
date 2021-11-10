@@ -28,6 +28,7 @@ def read_config():
         p_range_min (float): minimal value in range of fitting parameter p
         p_range_max (float): maximal value in range of fitting parameter p
         p_step (float): increment of p parameter
+        theoretical_p_list (list): list of theoretical p parameter to calculate r^2, T0, R0 from
         simulation (boolean): True if user wants simulation to occur
         simulate_t_min (float): the lower limit of the range of temperature
         simulate_t_max (float): the higher limit of the range of temperature
@@ -56,6 +57,7 @@ def read_config():
     p_range_min = config_data["p_range_min"]
     p_range_max = config_data["p_range_max"]
     p_step = config_data["p_step"]
+    theoretical_p_list = config_data["theoretical_p_list"]
     simulation = config_data["simulation"]
     simulate_t_min = config_data["simulate_t_min"]
     simulate_t_max = config_data["simulate_t_max"]
@@ -75,6 +77,7 @@ def read_config():
         p_range_min,
         p_range_max,
         p_step,
+        theoretical_p_list,
         simulation,
         simulate_t_min,
         simulate_t_max,
