@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from scipy import stats, constants
-from calculate_file import fit_linear
+from calculate_file import fit_linear, fit_dae
 
 # FUNCTIONS
 def make_plot_function(
@@ -20,6 +20,7 @@ def make_plot_function(
     plot_subtitle,
     plot_file_path,
     sub_label,
+    sub_x_data,
     sub_y_data,
 ):
     """Function that creates and saves plots.
@@ -41,7 +42,7 @@ def make_plot_function(
         if main_label:
             plt.legend()
         if sub_label:
-            plt.plot(x_data, sub_y_data, label=sub_label)
+            plt.plot(sub_x_data, sub_y_data, label=sub_label)
             plt.legend()
         plt.xlabel(x_label)
         plt.ylabel(y_label)
@@ -52,6 +53,24 @@ def make_plot_function(
         print("! OSERROR: Plot ", data_file + ".png couldn't be saved !")
     finally:
         plt.close()
+
+
+def get_min_max(data_column):
+    """Function that gets min and max values from a column
+
+    Args:
+        data_column (list): list of data in the column
+
+    Returns:
+        min_value (float): min value in the column
+        max_value (float): max value in the column
+    """
+    min_index = data_column.idxmin()
+    max_index = data_column.idxmax()
+    min_value = data_column[min_index]
+    max_value = data_column[max_index]
+
+    return min_value, max_value
 
 
 def make_plot_call(
@@ -112,6 +131,7 @@ def make_plot_call(
             file_path,
             None,
             None,
+            None,
         )
         plot_file_count += 1
         print(plot_file_count, file_path)
@@ -133,6 +153,7 @@ def make_plot_call(
             file_path,
             None,
             None,
+            None,
         )
         plot_file_count += 1
         print(plot_file_count, file_path)
@@ -144,7 +165,11 @@ def make_plot_call(
         p_param, t0_param, r0_param = tuple(optimal_params)
         x_data = temporary_data[column_t_name]
         y_data = temporary_data[column_r_name]
-        y_fit = temporary_data["R(T) fit"]
+
+        min_t_value, max_t_value = get_min_max(x_data)
+        x_fit_range = np.linspace(min_t_value, max_t_value, 100)
+        y_fit = r0_param * np.exp(1) ** ((t0_param / x_fit_range) ** p_param)
+
         sub_label = "fit R(T): p={}, T$_0$={:.2e}, R$_0$={:.2e}".format(
             p_param, t0_param, r0_param
         )
@@ -159,6 +184,7 @@ def make_plot_call(
             "R(T)",
             file_path,
             sub_label,
+            x_fit_range,
             y_fit,
         )
         plot_file_count += 1
@@ -172,7 +198,9 @@ def make_plot_call(
         r2_score = list_dae_r2_score[count]
         x_data = temporary_data[column_t_name]
         y_data = temporary_data["DAE"]
-        y_fit = temporary_data["aX^b fit"]
+        min_t_value, max_t_value = get_min_max(x_data)
+        x_fit_range = np.linspace(min_t_value, max_t_value, 100)
+        y_fit = fit_dae(x_fit_range, *optimal_params)
         sub_label = "fit aX$^b$: a={:.2e}, b={:.2e}".format(a_param, b_param)
         sub_label += ", R$^2$=%.3f" % r2_score
         file_path = save_directory + "/" + item + "/dae_fit_" + item + ".png"
@@ -186,6 +214,7 @@ def make_plot_call(
             "DAE(T)",
             file_path,
             sub_label,
+            x_fit_range,
             y_fit,
         )
         plot_file_count += 1
@@ -199,8 +228,10 @@ def make_plot_call(
         p_param, t0_param, _ = tuple(optimal_params)
         x_data = temporary_data[column_t_name]
         y_data = temporary_data["DAE"]
+        min_t_value, max_t_value = get_min_max(x_data)
+        x_fit_range = np.linspace(min_t_value, max_t_value, 100)
         y_fit = (p_param * kb_const * (t0_param ** p_param)) * (
-            temporary_data[column_t_name] ** (1 - p_param)
+            x_fit_range ** (1 - p_param)
         )
         sub_label = "fit from Arrhenius: p={}, T$_0$={:.2e}".format(p_param, t0_param)
         file_path = save_directory + "/" + item + "/dae_fit_arr_" + item + ".png"
@@ -214,6 +245,7 @@ def make_plot_call(
             "DAE(T) fit with p, T$_{0}$ from Arrhenius",
             file_path,
             sub_label,
+            x_fit_range,
             y_fit,
         )
         plot_file_count += 1
@@ -241,6 +273,7 @@ def make_plot_call(
             "log(DAE) = b' + a'*log(T)",
             file_path,
             sub_label,
+            x_data,
             y_fit,
         )
         plot_file_count += 1
@@ -249,6 +282,7 @@ def make_plot_call(
     return plot_file_count
 
 
+# Plot muliple theoretical DAE(T) for different theoretical p values
 def plot_theoretical_arrhenius(
     loaded_files,
     data_dae,
@@ -258,6 +292,21 @@ def plot_theoretical_arrhenius(
     save_directory,
     plot_file_count,
 ):
+    """Function that plots DAE curves for all theoretical p parameters with DAE(T)
+
+    Args:
+        loaded_files (list): list of names of files imported to program
+        data_dae (list): list of DataFrames of calculted data
+        column_t_name (str): name of column containing temperature data
+        theoretical_p_list (list): list of theoretical p parameter to calculate r^2, T0, R0 from
+        arr_theoretical_params_list (list): list of list of tuples with p and
+            calculated r^2, T0, R0 parameters
+        save_directory (str): directory of saved files
+        plot_file_count (int): counter of all saved plots
+
+    Returns:
+        plot_file_count (int): counter of all saved plots
+    """
     kb_const = constants.value("Boltzmann constant in eV/K")
     for count, item in enumerate(loaded_files, 0):
         temporary_data = data_dae[count]
@@ -528,6 +577,7 @@ def simulate_r_t(
         "simulation",
         "R(T)",
         save_directory,
+        None,
         None,
         None,
     )
