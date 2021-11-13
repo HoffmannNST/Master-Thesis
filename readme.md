@@ -3,7 +3,7 @@
 This program is made by Nicolas Hoffmann as the part of Master thesis at Poznań University of Technology.
 
 ## Installation
-The program has been compiled to executable application. Therfore there is no need for installation of any packages. The program is available at [this link](www.google.com).
+The program has been compiled to executable application. Therfore there is no need for installation of any packages. The program is available at [this link](https://drive.google.com/file/d/19gqg7t_HqkwY2mtjpt0WuMQV9NZYKfla/view?usp=sharing).
 
 In order to run the program user needs to download the .zip file from the above link and unpack it in desired disk location. From here user is able to configure program's settings and run it.
 
