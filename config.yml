@@ -8,7 +8,7 @@ data_file_format: ".txt"
 
 # Directory of FOLDER where calculated data and plots should be saved.
 # Directory needs to be in double quotes e.g. "C:/Users/Data", use right slashes (/) only!
-save_directory: "C:/Users/Data"
+save_directory: "C:/Users/Results"
 
 # Delimeter is a column separator symbol. Program supports all characters like ";", ".", "|", "," etc. To use tab separator e.g. in .tsv format use "\t".
 # Delimeter symbol needs to be in double quotes e.g. ";".
@@ -16,20 +16,20 @@ delimeter: "\t"
 
 # Decimal separator for input data is character to recognize as decimal point e.g. "," for european data or "." for american data. Program also supports other characters set by user.
 # Decimal separator needs to be in double quotes e.g. ",".
-decimal_separator: "."
+decimal_separator: ","
 
-# colmun_t_index is an index of column containing temperature (T) data in the R(T) data files. Counting indexes starts with 0 for the most left column.
+# colmun_t_index is an index of column containing temperature (T) data in the R(T) data files. Counting indexes starts with 0 for the most left column. The column needs to have a label in first row.
 column_t_index: 0
 
-# colmun_r_index is an index of column containing resistance (R) data in the R(T) data files. Counting indexes starts with 0 for the most left column.
+# colmun_r_index is an index of column containing resistance (R) data in the R(T) data files. Counting indexes starts with 0 for the most left column. The column needs to have a label in first row.
 column_r_index: 1
 
 # p_range_min is the lower limit of the range of fitting "p" parameter. Program supports negative and fraction values. This value must be lower than p_range_max value.
 # For negative values of p parameter the fitting may produce wrong values due to not fitting model of conduction.
-p_range_min: 0.2
+p_range_min: 0
 
 # p_range_max is the higher limit of the range of fitting "p" parameter. Program supports negative and fraction values. This value must be higher than p_range_min value.
-p_range_max: 0.75
+p_range_max: 1
 
 # p_step is the step of fitting "p" parameter in (p_range_min, p_range_max) range, e.g. if p_step: 0.5 for range (0,1), the "p" parameter will be fit for values {0, 0.5, 1}.
 # p_step needs to be positive number. p_step can be a decimal fraction.
@@ -38,7 +38,7 @@ p_step: 0.05
 # list of theoretical p values to calculate T0, R0 parameters with and then plot DAE(T) with Arrhenius fits using those values.
 # The lists's elements can have negative values and can be decimal fractions. Decimal separator needs to be dot "."
 # List needs to be in square brackets and elements of the list need to be separated with comma e.g. [0.1, 0.05, -0.1, 2, 0.33333].
-theoretical_p_list: [0.5, 0.333333, 0.25, 0.666666, 0.4, 0.75, 0.6]
+theoretical_p_list: [0.75, 0.666666, 0.6, 0.5, 0.4, 0.333333, 0.25]
 
 # simulation parameter checks if user wants to create simulation plot R(T). Program checks if simulation has a value, if so program will simulate R(T) plot.
 # simulation will not run if value is False or has no value. Simulation will run if this parameter has a value (e.g. True, "x", 0).

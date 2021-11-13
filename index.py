@@ -27,7 +27,10 @@ from plot_file import (
 
 # START XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # Welcome message
-print("\nWelcome to program!")
+print(
+    "\nWelcome!\nThis program is made by Nicolas Hoffmann as the part of master "
+    + "thesis at Poznań University of Technology."
+)
 
 # Read user's program configuration
 (
