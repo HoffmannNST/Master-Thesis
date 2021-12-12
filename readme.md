@@ -1,4 +1,4 @@
-# Program for automatization of analysis and interpretation of data in terms of determining the model of electrical conductivity.
+# Program for automatization of analysis and interpretation of resistance vs temperature data in terms of determining the model of electrical conductivity.
 
 This program is made by Nicolas Hoffmann as the part of Master thesis at Poznań University of Technology.
 
